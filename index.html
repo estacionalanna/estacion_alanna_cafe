@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estación Alanna Café — Menú</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cafe: #3B2A1A;
+    --cafe-claro: #6B4A2A;
+    --miel: #EF9F27;
+    --miel-claro: #FAC775;
+    --miel-fondo: #FAEEDA;
+    --cana: #3B6D11;
+    --crema: #FAF6ED;
+    --crema-oscuro: #F0E8D4;
+    --texto: #2C1F0F;
+    --texto-suave: #7A6050;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--crema);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--crema);
+    padding: 32px 20px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--crema-oscuro);
+  }
+  .header img {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    margin-bottom: 4px;
+  }
+  .header-tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--texto-suave);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    background: var(--cafe);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav button {
+    flex: 1;
+    padding: 13px 6px;
+    background: none;
+    border: none;
+    color: #BA7517;
+    font-family: 'Lato', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  nav button.active {
+    color: var(--miel-claro);
+    border-bottom: 3px solid var(--miel);
+  }
+
+  /* SECCIONES */
+  .seccion { display: none; padding: 20px 16px 40px; max-width: 480px; margin: 0 auto; }
+  .seccion.activa { display: block; }
+
+  /* BANNER INTRO */
+  .banner {
+    background: var(--cafe);
+    border-radius: 12px;
+    padding: 18px 16px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .banner-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--miel-claro);
+    margin-bottom: 6px;
+  }
+  .banner-desc {
+    font-size: 12px;
+    color: #BA7517;
+    line-height: 1.6;
+  }
+
+  /* GRUPO */
+  .grupo-titulo {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--miel);
+    margin: 20px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--crema-oscuro);
+  }
+
+  /* CARD ITEM */
+  .item {
+    background: #fff;
+    border: 1px solid var(--crema-oscuro);
+    border-radius: 10px;
+    padding: 14px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .item:hover { border-color: var(--miel-claro); }
+  .item.estrella {
+    border: 2px solid var(--miel);
+    background: #FFFDF7;
+  }
+  .item-icono {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .item-body { flex: 1; }
+  .item-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cafe);
+    margin-bottom: 4px;
+  }
+  .item-desc {
+    font-size: 13px;
+    color: var(--texto-suave);
+    line-height: 1.55;
+  }
+  .item-badge {
+    display: inline-block;
+    margin-top: 7px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: var(--miel-fondo);
+    color: #854F0B;
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+  .item-frase {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--miel);
+    margin-top: 6px;
+  }
+
+  /* ESENCIA */
+  .esencia-card {
+    background: #fff;
+    border: 1px solid var(--crema-oscuro);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .esencia-icono { font-size: 30px; margin-bottom: 8px; }
+  .esencia-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--cafe);
+    margin-bottom: 8px;
+  }
+  .esencia-texto {
+    font-size: 13px;
+    color: var(--texto-suave);
+    line-height: 1.7;
+  }
+  .esencia-texto strong { color: var(--cafe-claro); }
+
+  .local-info {
+    background: var(--cafe);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    margin-top: 6px;
+  }
+  .local-info p { font-size: 13px; color: #BA7517; line-height: 1.8; }
+  .local-info strong { color: var(--miel-claro); }
+
+  /* FOOTER */
+  footer {
+    background: var(--cafe);
+    padding: 18px;
+    text-align: center;
+  }
+  footer p { font-size: 11px; color: #6B4A2A; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="logo.png" alt="Estación Alanna Café" />
+  <p class="header-tagline">"Un alto en el camino para el alma"</p>
+</div>
+
+<nav>
+  <button class="active" onclick="mostrar('cafes', this)">☕ Cafés</button>
+  <button onclick="mostrar('cocidos', this)">🔥 Cocidos</button>
+  <button onclick="mostrar('esencia', this)">🌿 Esencia</button>
+</nav>
+
+<!-- CAFÉS -->
+<div class="seccion activa" id="cafes">
+  <div class="banner">
+    <div class="banner-titulo">Cafetería</div>
+    <div class="banner-desc">Elaborados con azúcar morena artesanal y el toque único de miel de caña pura de nuestra tierra.</div>
+  </div>
+
+  <div class="grupo-titulo">Los puros</div>
+  <div class="item">
+    <div class="item-icono">⚡</div>
+    <div class="item-body">
+      <div class="item-nombre">Expreso</div>
+      <div class="item-desc">La esencia pura del café. Corto, intenso y con una crema avellana perfecta.</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">〰️</div>
+    <div class="item-body">
+      <div class="item-nombre">Americano</div>
+      <div class="item-desc">Shot de expreso suavizado con agua caliente. Ideal para disfrutar con calma y aroma.</div>
+    </div>
+  </div>
+
+  <div class="grupo-titulo">Los suaves</div>
+  <div class="item">
+    <div class="item-icono">💧</div>
+    <div class="item-body">
+      <div class="item-nombre">Café cortado</div>
+      <div class="item-desc">Expreso con un toque sutil de leche vaporizada y una nube de espuma cremosa.</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">☕</div>
+    <div class="item-body">
+      <div class="item-nombre">Café con leche</div>
+      <div class="item-desc">El clásico infaltable. Equilibrio perfecto de expreso con leche vaporizada sedosa.</div>
+    </div>
+  </div>
+
+  <div class="grupo-titulo">Especiales</div>
+  <div class="item">
+    <div class="item-icono">☁️</div>
+    <div class="item-body">
+      <div class="item-nombre">Capuchino</div>
+      <div class="item-desc">Expreso con leche texturizada, espuma densa y decorado con cacao o canela.</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🍫</div>
+    <div class="item-body">
+      <div class="item-nombre">Mocaccino</div>
+      <div class="item-desc">Salsa de chocolate fundida con un shot de expreso y leche cremosa.</div>
+    </div>
+  </div>
+
+  <div class="grupo-titulo">⭐ Especialidad de la casa</div>
+  <div class="item estrella">
+    <div class="item-icono">🌟</div>
+    <div class="item-body">
+      <div class="item-nombre">Estación Arroyos</div>
+      <div class="item-desc">Nuestro café con leche fusionado con una cucharada generosa de miel de caña pura local.</div>
+      <div class="item-badge">Joya de la casa</div>
+      <div class="item-frase">"El sabor de nuestra tierra hecho café."</div>
+    </div>
+  </div>
+</div>
+
+<!-- COCIDOS -->
+<div class="seccion" id="cocidos">
+  <div class="banner">
+    <div class="banner-titulo">El alma del cocido</div>
+    <div class="banner-desc">Preparado con el auténtico método del quemado a la brasa, yerba mate y azúcar artesanal.</div>
+  </div>
+
+  <div class="grupo-titulo">Cocidos clásicos</div>
+  <div class="item">
+    <div class="item-icono">🔥</div>
+    <div class="item-body">
+      <div class="item-nombre">Cocido negro</div>
+      <div class="item-desc">El de siempre. Intenso, ahumado y bien caliente. El aroma tradicional del campo paraguayo.</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🥛</div>
+    <div class="item-body">
+      <div class="item-nombre">Cocido con leche</div>
+      <div class="item-desc">Base de cocido quemado con leche caliente vaporizada. Sabor suave y reconfortante.</div>
+    </div>
+  </div>
+
+  <div class="grupo-titulo">Texturas tradicionales</div>
+  <div class="item">
+    <div class="item-icono">🥜</div>
+    <div class="item-body">
+      <div class="item-nombre">Cocido con maní ku'i</div>
+      <div class="item-desc">Cocido negro con lluvia de maní tostado y molido artesanalmente. Un clásico del interior que aporta textura crocante única.</div>
+    </div>
+  </div>
+
+  <div class="grupo-titulo">⭐ Especialidad de la casa</div>
+  <div class="item estrella">
+    <div class="item-icono">🌟</div>
+    <div class="item-body">
+      <div class="item-nombre">Estación Esteros</div>
+      <div class="item-desc">Cocido con leche fusionado con miel de caña pura y coronado con hilos de miel sobre una capa de espuma densa.</div>
+      <div class="item-badge">Especialidad de la estación</div>
+      <div class="item-frase">"El verdadero oro negro de Arroyos y Esteros."</div>
+    </div>
+  </div>
+</div>
+
+<!-- ESENCIA -->
+<div class="seccion" id="esencia">
+  <div class="esencia-card">
+    <div class="esencia-icono">📍</div>
+    <div class="esencia-titulo">Orgullosamente Arroyense</div>
+    <div class="esencia-texto">Endulzamos cada momento con <strong>azúcar morena artesanal</strong> y el toque mágico de la <strong>miel de caña pura</strong> de nuestra tierra.</div>
+  </div>
+  <div class="esencia-card">
+    <div class="esencia-icono">🏆</div>
+    <div class="esencia-titulo">100% local</div>
+    <div class="esencia-texto">Utilizamos exclusivamente <strong>azúcar morena</strong> elaborada por productores de nuestra ciudad. Sin procesos industriales, conservando todos los minerales y el sabor auténtico de la <strong>caña dulce</strong>.</div>
+  </div>
+  <div class="local-info">
+    <p><strong>Estación Alanna Café</strong><br>Arroyos y Esteros, Cordillera<br>Paraguay 🇵🇾</p>
+  </div>
+</div>
+
+<footer>
+  <p>ESTACIÓN ALANNA CAFÉ · ARROYOS Y ESTEROS · PARAGUAY</p>
+</footer>
+
+<script>
+function mostrar(id, btn) {
+  document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('activa');
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>
