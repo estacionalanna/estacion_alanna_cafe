@@ -13,7 +13,7 @@ body{font-family:'Lato',sans-serif;background:var(--crema);color:var(--texto);mi
 .header img{width:120px;height:120px;object-fit:contain;margin-bottom:4px;}
 .header-tagline{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:var(--texto-suave);margin-top:4px;}
 nav{display:flex;background:var(--cafe);position:sticky;top:0;z-index:100;overflow-x:auto;}
-nav button{flex:1;min-width:70px;padding:12px 6px;background:none;border:none;color:#BA7517;font-family:'Lato',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+nav button{flex:1;min-width:65px;padding:12px 4px;background:none;border:none;color:#BA7517;font-family:'Lato',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
 nav button.active{color:var(--miel-claro);border-bottom:3px solid var(--miel);}
 .seccion{display:none;padding:18px 16px 40px;max-width:480px;margin:0 auto;}
 .seccion.activa{display:block;}
@@ -56,6 +56,7 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
   <button class="active" onclick="mostrar('cafes',this)">☕ Cafés</button>
   <button onclick="mostrar('cocidos',this)">🔥 Cocidos</button>
   <button onclick="mostrar('helados',this)">🍦 Helados</button>
+  <button onclick="mostrar('dulces',this)">🍰 Dulces</button>
   <button onclick="mostrar('esencia',this)">🌿 Esencia</button>
 </nav>
 
@@ -66,60 +67,16 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
     <div class="banner-desc">Con azúcar morena artesanal y miel de caña pura de nuestra tierra.</div>
   </div>
   <div class="grupo-titulo">Los puros</div>
-  <div class="item">
-    <div class="item-icono">⚡</div>
-    <div class="item-body">
-      <div class="item-nombre">Expreso</div>
-      <div class="item-desc">La esencia pura del café. Corto, intenso y con una crema avellana perfecta.</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">〰️</div>
-    <div class="item-body">
-      <div class="item-nombre">Americano</div>
-      <div class="item-desc">Shot de expreso suavizado con agua caliente. Ideal para disfrutar con calma.</div>
-    </div>
-  </div>
+  <div class="item"><div class="item-icono">⚡</div><div class="item-body"><div class="item-nombre">Expreso</div><div class="item-desc">La esencia pura del café. Corto, intenso y con una crema avellana perfecta.</div></div></div>
+  <div class="item"><div class="item-icono">〰️</div><div class="item-body"><div class="item-nombre">Americano</div><div class="item-desc">Shot de expreso suavizado con agua caliente. Ideal para disfrutar con calma.</div></div></div>
   <div class="grupo-titulo">Los suaves</div>
-  <div class="item">
-    <div class="item-icono">💧</div>
-    <div class="item-body">
-      <div class="item-nombre">Café cortado</div>
-      <div class="item-desc">Expreso con un toque sutil de leche vaporizada y una nube de espuma cremosa.</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">☕</div>
-    <div class="item-body">
-      <div class="item-nombre">Café con leche</div>
-      <div class="item-desc">El clásico infaltable. Equilibrio perfecto de expreso con leche vaporizada sedosa.</div>
-    </div>
-  </div>
+  <div class="item"><div class="item-icono">💧</div><div class="item-body"><div class="item-nombre">Café cortado</div><div class="item-desc">Expreso con un toque sutil de leche vaporizada y una nube de espuma cremosa.</div></div></div>
+  <div class="item"><div class="item-icono">☕</div><div class="item-body"><div class="item-nombre">Café con leche</div><div class="item-desc">El clásico infaltable. Equilibrio perfecto de expreso con leche vaporizada sedosa.</div></div></div>
   <div class="grupo-titulo">Especiales</div>
-  <div class="item">
-    <div class="item-icono">☁️</div>
-    <div class="item-body">
-      <div class="item-nombre">Capuchino</div>
-      <div class="item-desc">Expreso con leche texturizada, espuma densa y decorado con cacao o canela.</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">🍫</div>
-    <div class="item-body">
-      <div class="item-nombre">Mocaccino</div>
-      <div class="item-desc">Salsa de chocolate fundida con un shot de expreso y leche cremosa.</div>
-    </div>
-  </div>
+  <div class="item"><div class="item-icono">☁️</div><div class="item-body"><div class="item-nombre">Capuchino</div><div class="item-desc">Expreso con leche texturizada, espuma densa y decorado con cacao o canela.</div></div></div>
+  <div class="item"><div class="item-icono">🍫</div><div class="item-body"><div class="item-nombre">Mocaccino</div><div class="item-desc">Salsa de chocolate fundida con un shot de expreso y leche cremosa.</div></div></div>
   <div class="grupo-titulo">⭐ Especialidad de la casa</div>
-  <div class="item estrella">
-    <div class="item-icono">🌟</div>
-    <div class="item-body">
-      <div class="item-nombre">Estación Arroyos</div>
-      <div class="item-desc">Café con leche fusionado con una cucharada generosa de miel de caña pura local.</div>
-      <div class="item-badge">Joya de la casa</div>
-      <div class="item-frase">"El sabor de nuestra tierra hecho café."</div>
-    </div>
-  </div>
+  <div class="item estrella"><div class="item-icono">🌟</div><div class="item-body"><div class="item-nombre">Estación Arroyos</div><div class="item-desc">Café con leche fusionado con una cucharada generosa de miel de caña pura local.</div><div class="item-badge">Joya de la casa</div><div class="item-frase">"El sabor de nuestra tierra hecho café."</div></div></div>
 </div>
 
 <!-- COCIDOS -->
@@ -129,38 +86,12 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
     <div class="banner-desc">Método artesanal del quemado a la brasa, yerba mate y azúcar artesanal.</div>
   </div>
   <div class="grupo-titulo">Cocidos clásicos</div>
-  <div class="item">
-    <div class="item-icono">🔥</div>
-    <div class="item-body">
-      <div class="item-nombre">Cocido negro</div>
-      <div class="item-desc">El de siempre. Intenso, ahumado y bien caliente. El aroma del campo paraguayo.</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">🥛</div>
-    <div class="item-body">
-      <div class="item-nombre">Cocido con leche</div>
-      <div class="item-desc">Base de cocido quemado con leche caliente vaporizada. Sabor suave y reconfortante.</div>
-    </div>
-  </div>
+  <div class="item"><div class="item-icono">🔥</div><div class="item-body"><div class="item-nombre">Cocido negro</div><div class="item-desc">El de siempre. Intenso, ahumado y bien caliente. El aroma del campo paraguayo.</div></div></div>
+  <div class="item"><div class="item-icono">🥛</div><div class="item-body"><div class="item-nombre">Cocido con leche</div><div class="item-desc">Base de cocido quemado con leche caliente vaporizada. Sabor suave y reconfortante.</div></div></div>
   <div class="grupo-titulo">Texturas tradicionales</div>
-  <div class="item">
-    <div class="item-icono">🥜</div>
-    <div class="item-body">
-      <div class="item-nombre">Cocido con maní ku'i</div>
-      <div class="item-desc">Cocido negro con lluvia de maní tostado y molido artesanalmente. Un clásico del interior.</div>
-    </div>
-  </div>
+  <div class="item"><div class="item-icono">🥜</div><div class="item-body"><div class="item-nombre">Cocido con maní ku'i</div><div class="item-desc">Cocido negro con lluvia de maní tostado y molido artesanalmente. Un clásico del interior.</div></div></div>
   <div class="grupo-titulo">⭐ Especialidad de la casa</div>
-  <div class="item estrella">
-    <div class="item-icono">🌟</div>
-    <div class="item-body">
-      <div class="item-nombre">Estación Esteros</div>
-      <div class="item-desc">Cocido con leche fusionado con miel de caña pura y coronado con hilos de miel sobre espuma densa.</div>
-      <div class="item-badge">Especialidad de la estación</div>
-      <div class="item-frase">"El verdadero oro negro de Arroyos y Esteros."</div>
-    </div>
-  </div>
+  <div class="item estrella"><div class="item-icono">🌟</div><div class="item-body"><div class="item-nombre">Estación Esteros</div><div class="item-desc">Cocido con leche fusionado con miel de caña pura y coronado con hilos de miel sobre espuma densa.</div><div class="item-badge">Especialidad de la estación</div><div class="item-frase">"El verdadero oro negro de Arroyos y Esteros."</div></div></div>
 </div>
 
 <!-- HELADOS -->
@@ -169,62 +100,16 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
     <div class="banner-titulo">🍦 Helados artesanales</div>
     <div class="banner-desc">Elaborados artesanalmente con los mejores sabores. Frescos y cremosos.</div>
   </div>
-
   <div class="grupo-titulo">En cucurucho</div>
-  <div class="item">
-    <div class="item-icono">🍦</div>
-    <div class="item-body">
-      <div class="item-nombre">Una bocha</div>
-      <div class="item-precio">₲ 3.000</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">🍦</div>
-    <div class="item-body">
-      <div class="item-nombre">Dos bochas</div>
-      <div class="item-precio">₲ 5.000</div>
-    </div>
-  </div>
-
+  <div class="item"><div class="item-icono">🍦</div><div class="item-body"><div class="item-nombre">Una bocha</div><div class="item-precio">₲ 3.000</div></div></div>
+  <div class="item"><div class="item-icono">🍦</div><div class="item-body"><div class="item-nombre">Dos bochas</div><div class="item-precio">₲ 5.000</div></div></div>
   <div class="grupo-titulo">En vaso</div>
-  <div class="item">
-    <div class="item-icono">🥤</div>
-    <div class="item-body">
-      <div class="item-nombre">Vaso ¼ kg</div>
-      <div class="item-precio">₲ 10.000</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">🥤</div>
-    <div class="item-body">
-      <div class="item-nombre">Por kilo</div>
-      <div class="item-precio">₲ 30.000</div>
-    </div>
-  </div>
-
+  <div class="item"><div class="item-icono">🥤</div><div class="item-body"><div class="item-nombre">Vaso ¼ kg</div><div class="item-precio">₲ 10.000</div></div></div>
+  <div class="item"><div class="item-icono">🥤</div><div class="item-body"><div class="item-nombre">Por kilo</div><div class="item-precio">₲ 30.000</div></div></div>
   <div class="grupo-titulo">Paletas y otros</div>
-  <div class="item">
-    <div class="item-icono">🍭</div>
-    <div class="item-body">
-      <div class="item-nombre">Chupachus</div>
-      <div class="item-precio">₲ 1.000</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">🍡</div>
-    <div class="item-body">
-      <div class="item-nombre">Paleta frutal</div>
-      <div class="item-precio">₲ 2.000</div>
-    </div>
-  </div>
-  <div class="item">
-    <div class="item-icono">🍡</div>
-    <div class="item-body">
-      <div class="item-nombre">Paleta cremosa</div>
-      <div class="item-precio">₲ 3.000</div>
-    </div>
-  </div>
-
+  <div class="item"><div class="item-icono">🍭</div><div class="item-body"><div class="item-nombre">Chupachus</div><div class="item-precio">₲ 1.000</div></div></div>
+  <div class="item"><div class="item-icono">🍡</div><div class="item-body"><div class="item-nombre">Paleta frutal</div><div class="item-precio">₲ 2.000</div></div></div>
+  <div class="item"><div class="item-icono">🍡</div><div class="item-body"><div class="item-nombre">Paleta cremosa</div><div class="item-precio">₲ 3.000</div></div></div>
   <div class="grupo-titulo">Sabores disponibles</div>
   <div class="item" style="display:block;">
     <div class="sabores-box">
@@ -244,25 +129,31 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
   </div>
 </div>
 
+<!-- DULCES -->
+<div class="seccion" id="dulces">
+  <div class="banner">
+    <div class="banner-titulo">🍰 Dulces artesanales</div>
+    <div class="banner-desc">Elaborados por nuestra marca local asociada. Hechos con amor y los mejores ingredientes.</div>
+  </div>
+  <div class="grupo-titulo">Nuestros dulces</div>
+  <div class="item"><div class="item-icono">🥐</div><div class="item-body"><div class="item-nombre">Medialunas</div><div class="item-precio">₲ 8.000</div></div></div>
+  <div class="item"><div class="item-icono">🍞</div><div class="item-body"><div class="item-nombre">Bollos</div><div class="item-precio">₲ 6.000</div></div></div>
+  <div class="item"><div class="item-icono">🥧</div><div class="item-body"><div class="item-nombre">Pastafrola</div><div class="item-precio">₲ 8.000</div></div></div>
+  <div class="item"><div class="item-icono">🍰</div><div class="item-body"><div class="item-nombre">Pionono</div><div class="item-precio">₲ 6.000</div></div></div>
+  <div class="item"><div class="item-icono">🍯</div><div class="item-body"><div class="item-nombre">Marmolada</div><div class="item-precio">₲ 8.000</div></div></div>
+  <div class="item"><div class="item-icono">🍪</div><div class="item-body"><div class="item-nombre">Alfajor</div><div class="item-precio">₲ 8.000</div></div></div>
+  <div class="item"><div class="item-icono">🍫</div><div class="item-body"><div class="item-nombre">Brownie</div><div class="item-precio">₲ 11.000</div></div></div>
+  <div class="item"><div class="item-icono">🍪</div><div class="item-body"><div class="item-nombre">Cookies</div><div class="item-precio">₲ 11.000</div></div></div>
+</div>
+
 <!-- ESENCIA -->
 <div class="seccion" id="esencia">
-  <div class="esencia">
-    <div class="esencia-icono">📍</div>
-    <div class="esencia-titulo">Orgullosamente Arroyense</div>
-    <div class="esencia-texto">Endulzamos cada momento con <strong>azúcar morena artesanal</strong> y el toque mágico de la <strong>miel de caña pura</strong> de nuestra tierra.</div>
-  </div>
-  <div class="esencia">
-    <div class="esencia-icono">🏆</div>
-    <div class="esencia-titulo">100% local</div>
-    <div class="esencia-texto">Azúcar morena elaborada por productores de nuestra ciudad. Sin procesos industriales, conservando el sabor auténtico de la <strong>caña dulce</strong>.</div>
-  </div>
-  <div class="local-info">
-    <p><strong>Estación Alanna Café</strong><br>Arroyos y Esteros, Cordillera<br>Paraguay 🇵🇾</p>
-  </div>
+  <div class="esencia"><div class="esencia-icono">📍</div><div class="esencia-titulo">Orgullosamente Arroyense</div><div class="esencia-texto">Endulzamos cada momento con <strong>azúcar morena artesanal</strong> y el toque mágico de la <strong>miel de caña pura</strong> de nuestra tierra.</div></div>
+  <div class="esencia"><div class="esencia-icono">🏆</div><div class="esencia-titulo">100% local</div><div class="esencia-texto">Azúcar morena elaborada por productores de nuestra ciudad. Sin procesos industriales, conservando el sabor auténtico de la <strong>caña dulce</strong>.</div></div>
+  <div class="local-info"><p><strong>Estación Alanna Café</strong><br>Arroyos y Esteros, Cordillera<br>Paraguay 🇵🇾</p></div>
 </div>
 
 <footer><p>ESTACIÓN ALANNA CAFÉ · ARROYOS Y ESTEROS · PARAGUAY</p></footer>
-
 <script>
 function mostrar(id,btn){
   document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('activa'));
