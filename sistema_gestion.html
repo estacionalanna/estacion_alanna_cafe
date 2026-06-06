@@ -90,6 +90,42 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 
 
 
+
+.torneo-tab{flex:1;padding:8px 4px;background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;color:#7A6050;border-radius:8px;transition:all 0.15s;}
+.torneo-tab.active{background:#3B2A1A;color:#FAC775;}
+.jugador-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid #E8DFC8;border-radius:10px;margin-bottom:6px;}
+.jug-num{width:28px;height:28px;border-radius:50%;background:#3B2A1A;color:#FAC775;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.jug-info{flex:1;}
+.jug-nombre{font-size:13px;font-weight:700;color:#3B2A1A;}
+.jug-sub{font-size:11px;color:#7A6050;}
+.btn-elim-jug{background:none;border:none;color:#A32D2D;cursor:pointer;font-size:16px;padding:2px;}
+.grupo-card{background:#fff;border:1px solid #E8DFC8;border-radius:12px;padding:12px;margin-bottom:10px;}
+.grupo-titulo{font-size:11px;font-weight:700;letter-spacing:2px;color:#BA7517;margin-bottom:8px;text-transform:uppercase;}
+.partido-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #F0E8D4;}
+.partido-row:last-child{border-bottom:none;}
+.partido-jugador{flex:1;font-size:13px;color:#3B2A1A;font-weight:500;}
+.partido-jugador.right{text-align:right;}
+.partido-vs{font-size:11px;color:#7A6050;font-weight:700;padding:0 4px;}
+.gol-input{width:44px;height:32px;border:1px solid #E8DFC8;border-radius:8px;text-align:center;font-size:15px;font-weight:700;color:#3B2A1A;background:#FAF6ED;font-family:"Lato",sans-serif;}
+.btn-guardar-res{padding:5px 10px;background:#3B6D11;color:#EAF3DE;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+.llave-match{background:#fff;border:1px solid #E8DFC8;border-radius:10px;padding:12px;margin-bottom:8px;}
+.llave-titulo{font-size:10px;font-weight:700;letter-spacing:2px;color:#BA7517;margin-bottom:8px;text-transform:uppercase;}
+.llave-jugador{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;margin-bottom:4px;background:#FAF6ED;}
+.llave-jugador.ganador{background:#EAF3DE;border:1px solid #3B6D11;}
+.llave-jugador-nombre{font-size:13px;font-weight:700;color:#3B2A1A;}
+.llave-pts{font-size:12px;color:#7A6050;}
+.ganador-card{background:#3B2A1A;border-radius:16px;padding:28px 20px;text-align:center;}
+.ganador-trofeo{font-size:56px;margin-bottom:8px;}
+.ganador-titulo{font-size:13px;letter-spacing:3px;color:#BA7517;text-transform:uppercase;margin-bottom:8px;}
+.ganador-nombre{font-size:28px;font-weight:700;color:#FAC775;margin-bottom:4px;}
+.ganador-equipo{font-size:14px;color:#BA7517;}
+.tabla-pos{width:100%;border-collapse:collapse;margin-top:8px;}
+.tabla-pos th{font-size:10px;font-weight:700;letter-spacing:1px;color:#BA7517;text-align:left;padding:4px 6px;text-transform:uppercase;}
+.tabla-pos td{font-size:12px;color:#3B2A1A;padding:6px 6px;border-bottom:1px solid #F0E8D4;}
+.tabla-pos tr:last-child td{border-bottom:none;}
+.tabla-pos td.pts{font-weight:700;color:#3B6D11;}
+.clasificado{background:#F6FBF0;}
+
 .prod-rank{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F0E8D4;}
 .prod-rank:last-child{border-bottom:none;}
 .prod-rank-pos{width:24px;height:24px;border-radius:50%;background:#3B2A1A;color:#FAC775;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -153,6 +189,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-empleados" onclick="showVista('empleados')">👥 Turnos</button>
   <button class="nav-tab" id="tab-cumple" onclick="showVista('cumple')">🎂 Clientes</button>
   <button class="nav-tab" id="tab-reporte" onclick="showVista('reporte')">📊 Reporte</button>
+  <button class="nav-tab" id="tab-torneo" onclick="showVista('torneo')">🏆 Torneo</button>
 </div>
 
 <div class="vista activa" id="v-mesas">
@@ -311,6 +348,62 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<div class="vista" id="v-torneo">
+
+  <!-- Header torneo -->
+  <div style="background:#3B2A1A;border-radius:12px;padding:16px;margin-bottom:12px;text-align:center;">
+    <div style="font-size:24px;margin-bottom:4px;">🏆</div>
+    <div style="font-size:16px;font-weight:700;color:#FAC775;letter-spacing:1px;">Torneo EA Sports FC 2026</div>
+    <div style="font-size:12px;color:#BA7517;margin-top:4px;">Estación Alanna Café</div>
+  </div>
+
+  <!-- Sub tabs -->
+  <div style="display:flex;background:#F0E8D4;border-radius:10px;padding:3px;margin-bottom:12px;gap:3px;">
+    <button class="torneo-tab active" id="tt-inscripcion" onclick="showTorneoTab('inscripcion')">📋 Inscripción</button>
+    <button class="torneo-tab" id="tt-grupos" onclick="showTorneoTab('grupos')">👥 Grupos</button>
+    <button class="torneo-tab" id="tt-llaves" onclick="showTorneoTab('llaves')">⚡ Llaves</button>
+    <button class="torneo-tab" id="tt-ganador" onclick="showTorneoTab('ganador')">🥇 Ganador</button>
+  </div>
+
+  <!-- INSCRIPCIÓN -->
+  <div id="tt-inscripcion-content">
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="panel-title">Inscribir jugador</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+        <input type="text" id="tor-nombre" placeholder="Nombre del jugador" style="padding:9px 12px;border:1px solid #E8DFC8;border-radius:8px;font-size:13px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+        <input type="tel" id="tor-tel" placeholder="Teléfono (ej: 0981 123456)" style="padding:9px 12px;border:1px solid #E8DFC8;border-radius:8px;font-size:13px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+        <input type="text" id="tor-equipo" placeholder="Equipo favorito (ej: Flamengo)" style="padding:9px 12px;border:1px solid #E8DFC8;border-radius:8px;font-size:13px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+        <button onclick="inscribirJugador()" style="padding:11px;background:#3B2A1A;color:#FAC775;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">⚽ Inscribir jugador</button>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="panel-title">Jugadores inscriptos</div>
+      <div id="tor-jugadores-lista"><p class="empty-msg">Sin jugadores aún</p></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button onclick="generarGrupos()" style="padding:11px;background:#3B6D11;color:#EAF3DE;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">▶ Generar grupos</button>
+      <button onclick="resetTorneo()" style="padding:11px;background:none;color:#A32D2D;border:1px solid #F7C1C1;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">🗑 Reiniciar torneo</button>
+    </div>
+  </div>
+
+  <!-- GRUPOS -->
+  <div id="tt-grupos-content" style="display:none;">
+    <div id="tor-grupos-container"><p class="empty-msg">Generá los grupos primero desde Inscripción</p></div>
+  </div>
+
+  <!-- LLAVES -->
+  <div id="tt-llaves-content" style="display:none;">
+    <div id="tor-llaves-container"><p class="empty-msg">Completá la fase de grupos primero</p></div>
+  </div>
+
+  <!-- GANADOR -->
+  <div id="tt-ganador-content" style="display:none;">
+    <div id="tor-ganador-container"><p class="empty-msg">El torneo aún no tiene ganador</p></div>
+  </div>
+
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
@@ -345,8 +438,8 @@ setInterval(()=>{const d=new Date();document.getElementById('hora').textContent=
 document.getElementById('hora').textContent=new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
 
 function showVista(id){
-  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
-  ['mesas','resumen','stock','empleados','cumple','reporte'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
+  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
+  ['mesas','resumen','stock','empleados','cumple','reporte','torneo'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
   document.getElementById('v-'+id).classList.add('activa');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
   if(id==='resumen')escucharVentas();
@@ -354,6 +447,7 @@ function showVista(id){
   if(id==='empleados'){escucharEmpleados();renderEmpleados();}
   if(id==='cumple'){escucharClientes();}
   if(id==='reporte'){cargarReporte();}
+  if(id==='torneo'){escucharTorneo();}
 }
 function volverMesas(){mesaActual=null;showVista('mesas');}
 
@@ -562,6 +656,275 @@ db.collection('playstation').doc('ps1').get().then(snap=>{
 
 
 
+
+
+// TORNEO
+let torneoData = {jugadores:[], grupos:[], llaves:[], ganador:null, estado:'inscripcion'};
+let torneoEscuchando = false;
+
+function showTorneoTab(tab){
+  ['inscripcion','grupos','llaves','ganador'].forEach(t=>{
+    document.getElementById('tt-'+t+'-content').style.display = t===tab?'block':'none';
+    document.getElementById('tt-'+t).classList.toggle('active', t===tab);
+  });
+  if(tab==='grupos') renderGrupos();
+  if(tab==='llaves') renderLlaves();
+  if(tab==='ganador') renderGanador();
+}
+
+function escucharTorneo(){
+  if(torneoEscuchando) return;
+  torneoEscuchando = true;
+  db.collection('torneo').doc('actual').onSnapshot(snap=>{
+    if(snap.exists) torneoData = snap.data();
+    renderJugadores();
+    setSyncOk();
+  }, ()=>setSyncErr());
+}
+
+function guardarTorneo(){
+  db.collection('torneo').doc('actual').set(torneoData).catch(()=>setSyncErr());
+}
+
+function inscribirJugador(){
+  const nombre = document.getElementById('tor-nombre').value.trim();
+  const tel = document.getElementById('tor-tel').value.trim();
+  const equipo = document.getElementById('tor-equipo').value.trim();
+  if(!nombre){alert('Escribí el nombre del jugador.');return;}
+  if(torneoData.jugadores.find(j=>j.nombre===nombre)){alert('Ese jugador ya está inscripto.');return;}
+  torneoData.jugadores.push({id:'j'+Date.now(), nombre, tel, equipo});
+  guardarTorneo();
+  document.getElementById('tor-nombre').value='';
+  document.getElementById('tor-tel').value='';
+  document.getElementById('tor-equipo').value='';
+  renderJugadores();
+}
+
+function eliminarJugador(id){
+  torneoData.jugadores = torneoData.jugadores.filter(j=>j.id!==id);
+  guardarTorneo(); renderJugadores();
+}
+
+function renderJugadores(){
+  const el = document.getElementById('tor-jugadores-lista');
+  if(!el) return;
+  const jugs = torneoData.jugadores||[];
+  el.innerHTML = jugs.length===0 ? '<p class="empty-msg">Sin jugadores aún</p>' :
+    jugs.map((j,i)=>`<div class="jugador-card">
+      <div class="jug-num">${i+1}</div>
+      <div class="jug-info">
+        <div class="jug-nombre">⚽ ${j.nombre}</div>
+        <div class="jug-sub">${j.equipo||'Sin equipo'} ${j.tel?'· '+j.tel:''}</div>
+      </div>
+      <button class="btn-elim-jug" onclick="eliminarJugador('${j.id}')">✕</button>
+    </div>`).join('') +
+    `<div style="text-align:center;font-size:12px;color:#BA7517;margin-top:8px;font-weight:700;">${jugs.length} jugador${jugs.length!==1?'es':''} inscripto${jugs.length!==1?'s':''}</div>`;
+}
+
+function generarGrupos(){
+  const jugs = torneoData.jugadores||[];
+  if(jugs.length < 2){alert('Necesitás al menos 2 jugadores para generar grupos.');return;}
+  if(!confirm('¿Generar grupos con '+jugs.length+' jugadores? Esto reorganizará el torneo.'))return;
+
+  // Mezclar jugadores aleatoriamente
+  const mezclados = [...jugs].sort(()=>Math.random()-0.5);
+  const tamGrupo = mezclados.length <= 6 ? mezclados.length : Math.ceil(mezclados.length/2);
+  const grupos = [];
+  for(let i=0; i<mezclados.length; i+=tamGrupo){
+    const miembros = mezclados.slice(i, i+tamGrupo);
+    const partidos = [];
+    for(let a=0; a<miembros.length; a++){
+      for(let b=a+1; b<miembros.length; b++){
+        partidos.push({j1:miembros[a].id, j2:miembros[b].id, goles1:null, goles2:null, jugado:false});
+      }
+    }
+    grupos.push({id:'g'+grupos.length, nombre:'Grupo '+(grupos.length===0?'A':'B'), miembros:miembros.map(m=>m.id), partidos});
+  }
+  torneoData.grupos = grupos;
+  torneoData.llaves = [];
+  torneoData.ganador = null;
+  torneoData.estado = 'grupos';
+  guardarTorneo();
+  showTorneoTab('grupos');
+}
+
+function getNombre(id){
+  const j = (torneoData.jugadores||[]).find(j=>j.id===id);
+  return j ? j.nombre : '?';
+}
+
+function getEquipo(id){
+  const j = (torneoData.jugadores||[]).find(j=>j.id===id);
+  return j ? j.equipo||'' : '';
+}
+
+function getPosiciones(grupo){
+  const pos = {};
+  grupo.miembros.forEach(id=>{ pos[id]={pts:0,gf:0,gc:0,pj:0}; });
+  grupo.partidos.forEach(p=>{
+    if(!p.jugado) return;
+    const g1=parseInt(p.goles1), g2=parseInt(p.goles2);
+    pos[p.j1].pj++; pos[p.j2].pj++;
+    pos[p.j1].gf+=g1; pos[p.j1].gc+=g2;
+    pos[p.j2].gf+=g2; pos[p.j2].gc+=g1;
+    if(g1>g2){pos[p.j1].pts+=3;}
+    else if(g2>g1){pos[p.j2].pts+=3;}
+    else{pos[p.j1].pts+=1;pos[p.j2].pts+=1;}
+  });
+  return Object.entries(pos).map(([id,s])=>({id,...s})).sort((a,b)=>b.pts-a.pts||b.gf-b.gc-(a.gf-a.gc));
+}
+
+function renderGrupos(){
+  const el = document.getElementById('tor-grupos-container');
+  if(!el) return;
+  const grupos = torneoData.grupos||[];
+  if(grupos.length===0){el.innerHTML='<p class="empty-msg">Generá los grupos primero desde Inscripción</p>';return;}
+  el.innerHTML = grupos.map((g,gi)=>{
+    const pos = getPosiciones(g);
+    const tablaHTML = `<table class="tabla-pos">
+      <tr><th>#</th><th>Jugador</th><th>PJ</th><th>GF</th><th>GC</th><th>Pts</th></tr>
+      ${pos.map((p,i)=>`<tr class="${i===0?'clasificado':''}">
+        <td>${i+1}${i===0?'✓':''}</td>
+        <td>${getNombre(p.id)}</td>
+        <td>${p.pj}</td><td>${p.gf}</td><td>${p.gc}</td>
+        <td class="pts">${p.pts}</td>
+      </tr>`).join('')}
+    </table>`;
+    const partidosHTML = g.partidos.map((p,pi)=>`
+      <div class="partido-row">
+        <span class="partido-jugador">${getNombre(p.j1)}</span>
+        <input class="gol-input" type="number" min="0" max="99" value="${p.goles1!==null?p.goles1:''}" id="g${gi}p${pi}j1" placeholder="-">
+        <span class="partido-vs">vs</span>
+        <input class="gol-input" type="number" min="0" max="99" value="${p.goles2!==null?p.goles2:''}" id="g${gi}p${pi}j2" placeholder="-">
+        <span class="partido-jugador right">${getNombre(p.j2)}</span>
+        <button class="btn-guardar-res" onclick="guardarResultado(${gi},${pi})">✓</button>
+      </div>`).join('');
+    return `<div class="grupo-card">
+      <div class="grupo-titulo">⚽ ${g.nombre}</div>
+      ${tablaHTML}
+      <div style="margin-top:10px;font-size:10px;font-weight:700;letter-spacing:1px;color:#BA7517;text-transform:uppercase;margin-bottom:6px;">Partidos</div>
+      ${partidosHTML}
+    </div>`;
+  }).join('') +
+  `<button onclick="generarLlaves()" style="width:100%;padding:11px;background:#3B2A1A;color:#FAC775;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;">⚡ Generar llaves con líderes de grupo</button>`;
+}
+
+function guardarResultado(gi, pi){
+  const g1 = document.getElementById('g'+gi+'p'+pi+'j1').value;
+  const g2 = document.getElementById('g'+gi+'p'+pi+'j2').value;
+  if(g1===''||g2===''){alert('Ingresá los goles de ambos jugadores.');return;}
+  torneoData.grupos[gi].partidos[pi].goles1 = parseInt(g1);
+  torneoData.grupos[gi].partidos[pi].goles2 = parseInt(g2);
+  torneoData.grupos[gi].partidos[pi].jugado = true;
+  guardarTorneo();
+  renderGrupos();
+}
+
+function generarLlaves(){
+  const grupos = torneoData.grupos||[];
+  if(grupos.length===0){alert('No hay grupos generados.');return;}
+  const lideres = grupos.map(g=>getPosiciones(g)[0].id);
+  if(lideres.length < 2){alert('Necesitás al menos 2 grupos para generar llaves.');return;}
+  if(!confirm('¿Generar llaves con los líderes de cada grupo?'))return;
+  const semifinales = [];
+  for(let i=0; i<lideres.length-1; i+=2){
+    semifinales.push({j1:lideres[i], j2:lideres[i+1]||null, goles1:null, goles2:null, jugado:false, ganador:null});
+  }
+  torneoData.llaves = [{ronda:'Semifinal', partidos:semifinales},{ronda:'Final', partidos:[{j1:null,j2:null,goles1:null,goles2:null,jugado:false,ganador:null}]}];
+  torneoData.estado = 'llaves';
+  guardarTorneo();
+  showTorneoTab('llaves');
+}
+
+function renderLlaves(){
+  const el = document.getElementById('tor-llaves-container');
+  if(!el) return;
+  const llaves = torneoData.llaves||[];
+  if(llaves.length===0){el.innerHTML='<p class="empty-msg">Completá la fase de grupos primero</p>';return;}
+  el.innerHTML = llaves.map((ronda,ri)=>`
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#BA7517;text-transform:uppercase;margin-bottom:8px;">${ronda.ronda}</div>
+      ${ronda.partidos.map((p,pi)=>{
+        const j1 = p.j1 ? getNombre(p.j1) : '—';
+        const j2 = p.j2 ? getNombre(p.j2) : '—';
+        const eq1 = p.j1 ? getEquipo(p.j1) : '';
+        const eq2 = p.j2 ? getEquipo(p.j2) : '';
+        return `<div class="llave-match">
+          <div class="llave-jugador ${p.ganador===p.j1?'ganador':''}">
+            <div>
+              <div class="llave-jugador-nombre">⚽ ${j1}</div>
+              ${eq1?'<div style="font-size:10px;color:#7A6050;">'+eq1+'</div>':''}
+            </div>
+            <span class="llave-pts">${p.goles1!==null?p.goles1:'—'}</span>
+          </div>
+          <div class="llave-jugador ${p.ganador===p.j2?'ganador':''}">
+            <div>
+              <div class="llave-jugador-nombre">⚽ ${j2}</div>
+              ${eq2?'<div style="font-size:10px;color:#7A6050;">'+eq2+'</div>':''}
+            </div>
+            <span class="llave-pts">${p.goles2!==null?p.goles2:'—'}</span>
+          </div>
+          ${!p.jugado && p.j1 && p.j2 ? `
+          <div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid #F0E8D4;">
+            <input class="gol-input" type="number" min="0" id="ll${ri}p${pi}j1" placeholder="-" style="flex:1;">
+            <span style="font-size:11px;color:#7A6050;font-weight:700;">vs</span>
+            <input class="gol-input" type="number" min="0" id="ll${ri}p${pi}j2" placeholder="-" style="flex:1;">
+            <button class="btn-guardar-res" onclick="guardarResultadoLlave(${ri},${pi})">✓ Guardar</button>
+          </div>` : p.jugado ? '<div style="text-align:center;font-size:11px;color:#3B6D11;font-weight:700;margin-top:6px;">✓ Jugado</div>' : ''}
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function guardarResultadoLlave(ri, pi){
+  const g1 = document.getElementById('ll'+ri+'p'+pi+'j1').value;
+  const g2 = document.getElementById('ll'+ri+'p'+pi+'j2').value;
+  if(g1===''||g2===''){alert('Ingresá los goles de ambos jugadores.');return;}
+  const ig1=parseInt(g1), ig2=parseInt(g2);
+  if(ig1===ig2){alert('No puede haber empate en las llaves. Ingresá un resultado con ganador.');return;}
+  const p = torneoData.llaves[ri].partidos[pi];
+  p.goles1=ig1; p.goles2=ig2; p.jugado=true;
+  p.ganador = ig1>ig2 ? p.j1 : p.j2;
+  // Si es semifinal, pasar ganador a final
+  if(ri===0){
+    const finales = torneoData.llaves[1].partidos;
+    const ganadores = torneoData.llaves[0].partidos.filter(x=>x.jugado).map(x=>x.ganador);
+    if(ganadores.length>=1) finales[0].j1 = ganadores[0];
+    if(ganadores.length>=2) finales[0].j2 = ganadores[1];
+  }
+  // Si es final, definir ganador del torneo
+  if(ri===1){
+    torneoData.ganador = p.ganador;
+    torneoData.estado = 'finalizado';
+  }
+  guardarTorneo();
+  renderLlaves();
+  if(ri===1) showTorneoTab('ganador');
+}
+
+function renderGanador(){
+  const el = document.getElementById('tor-ganador-container');
+  if(!el) return;
+  if(!torneoData.ganador){el.innerHTML='<p class="empty-msg">El torneo aún no tiene ganador</p>';return;}
+  const g = (torneoData.jugadores||[]).find(j=>j.id===torneoData.ganador);
+  if(!g){el.innerHTML='<p class="empty-msg">No se encontró el ganador</p>';return;}
+  el.innerHTML = `<div class="ganador-card">
+    <div class="ganador-trofeo">🏆</div>
+    <div class="ganador-titulo">Campeón del Torneo</div>
+    <div class="ganador-nombre">${g.nombre}</div>
+    <div class="ganador-equipo">⚽ ${g.equipo||'Campeón'}</div>
+    <div style="margin-top:16px;font-size:12px;color:#BA7517;">Torneo EA Sports FC 2026<br>Estación Alanna Café</div>
+  </div>
+  <button onclick="resetTorneo()" style="width:100%;padding:11px;background:none;color:#A32D2D;border:1px solid #F7C1C1;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;">🗑 Iniciar nuevo torneo</button>`;
+}
+
+function resetTorneo(){
+  if(!confirm('¿Reiniciar el torneo? Se borrarán todos los datos.'))return;
+  torneoData = {jugadores:[],grupos:[],llaves:[],ganador:null,estado:'inscripcion'};
+  guardarTorneo();
+  showTorneoTab('inscripcion');
+  renderJugadores();
+}
 
 // REPORTE SEMANAL
 let graficoSemana = null;
