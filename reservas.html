@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estación Alanna — Reservas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{--cafe:#3B2A1A;--miel:#EF9F27;--miel-claro:#FAC775;--miel-fondo:#FAEEDA;--cana:#3B6D11;--crema:#FAF6ED;--crema-oscuro:#F0E8D4;--texto:#2C1F0F;--texto-suave:#7A6050;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Lato',sans-serif;background:var(--crema);min-height:100vh;}
+.header{background:var(--cafe);padding:24px 20px 20px;text-align:center;}
+.header img{width:80px;height:80px;object-fit:contain;border-radius:50%;border:2px solid var(--miel);margin-bottom:10px;}
+.header h1{font-family:'Playfair Display',serif;font-size:20px;color:var(--miel-claro);margin-bottom:4px;}
+.header p{font-size:12px;color:#BA7517;letter-spacing:1px;}
+.contenido{max-width:480px;margin:0 auto;padding:20px 16px 40px;}
+.paso{background:#fff;border:1px solid var(--crema-oscuro);border-radius:12px;padding:16px;margin-bottom:12px;}
+.paso-titulo{font-size:11px;font-weight:700;letter-spacing:2px;color:#BA7517;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.paso-num{width:22px;height:22px;border-radius:50%;background:var(--cafe);color:var(--miel-claro);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.tipo-btn{padding:14px 8px;border:2px solid var(--crema-oscuro);border-radius:10px;background:#fff;cursor:pointer;text-align:center;transition:all 0.15s;}
+.tipo-btn.sel{border-color:var(--miel);background:var(--miel-fondo);}
+.tipo-btn-icono{font-size:24px;margin-bottom:4px;}
+.tipo-btn-label{font-size:13px;font-weight:700;color:var(--cafe);}
+.tipo-btn-sub{font-size:11px;color:var(--texto-suave);}
+.mesa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.mesa-opt{padding:10px 4px;border:2px solid var(--crema-oscuro);border-radius:8px;background:#fff;cursor:pointer;text-align:center;font-size:12px;font-weight:700;color:var(--cafe);transition:all 0.15s;}
+.mesa-opt.sel{border-color:var(--miel);background:var(--miel-fondo);color:#854F0B;}
+.campo{margin-bottom:10px;}
+.campo label{display:block;font-size:11px;font-weight:700;color:var(--texto-suave);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.campo input,.campo select,.campo textarea{width:100%;padding:10px 12px;border:1px solid var(--crema-oscuro);border-radius:8px;font-size:13px;background:var(--crema);font-family:'Lato',sans-serif;color:var(--texto);outline:none;}
+.campo input:focus,.campo select:focus,.campo textarea:focus{border-color:#BA7517;}
+.campo textarea{resize:none;height:70px;}
+.btn-reservar{width:100%;padding:14px;background:var(--cafe);color:var(--miel-claro);border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:4px;}
+.btn-reservar:active{opacity:0.85;}
+.confirmacion{display:none;text-align:center;padding:30px 20px;}
+.conf-icono{font-size:56px;margin-bottom:12px;}
+.conf-titulo{font-family:'Playfair Display',serif;font-size:22px;color:var(--cafe);margin-bottom:8px;}
+.conf-texto{font-size:13px;color:var(--texto-suave);line-height:1.7;margin-bottom:20px;}
+.conf-detalle{background:#fff;border:1px solid var(--crema-oscuro);border-radius:10px;padding:14px;text-align:left;margin-bottom:20px;}
+.conf-fila{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--crema-oscuro);font-size:13px;}
+.conf-fila:last-child{border-bottom:none;}
+.conf-key{color:var(--texto-suave);}
+.conf-val{font-weight:700;color:var(--cafe);}
+.btn-nueva{padding:12px 28px;background:none;border:1px solid var(--crema-oscuro);border-radius:8px;font-family:'Lato',sans-serif;font-size:13px;cursor:pointer;color:var(--texto-suave);}
+footer{background:var(--cafe);padding:14px;text-align:center;}
+footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img src="logo.png" alt="Estación Alanna Café" onerror="this.style.display='none'">
+  <h1>Estación Alanna Café</h1>
+  <p>RESERVÁ TU LUGAR</p>
+</div>
+
+<div class="contenido">
+
+  <div id="formulario">
+
+    <!-- Paso 1 — Qué reservar -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num">1</span> ¿Qué querés reservar?</div>
+      <div class="tipo-grid">
+        <div class="tipo-btn sel" id="tipo-mesa" onclick="selTipo('mesa')">
+          <div class="tipo-btn-icono">🪑</div>
+          <div class="tipo-btn-label">Mesa</div>
+          <div class="tipo-btn-sub">Para comer y tomar</div>
+        </div>
+        <div class="tipo-btn" id="tipo-ps" onclick="selTipo('ps')">
+          <div class="tipo-btn-icono">🎮</div>
+          <div class="tipo-btn-label">PlayStation</div>
+          <div class="tipo-btn-sub">EA Sports FC 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 2 — Número de mesa (solo si es mesa) -->
+    <div class="paso" id="paso-mesa">
+      <div class="paso-titulo"><span class="paso-num">2</span> ¿Cuál mesa preferís?</div>
+      <div class="mesa-grid">
+        <div class="mesa-opt sel" id="mesa-1" onclick="selMesa(1)">Mesa 1</div>
+        <div class="mesa-opt" id="mesa-2" onclick="selMesa(2)">Mesa 2</div>
+        <div class="mesa-opt" id="mesa-3" onclick="selMesa(3)">Mesa 3</div>
+        <div class="mesa-opt" id="mesa-4" onclick="selMesa(4)">Mesa 4</div>
+      </div>
+    </div>
+
+    <!-- Paso 3 — Fecha y hora -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num" id="paso3-num">3</span> Fecha y hora</div>
+      <div class="campo">
+        <label>Fecha</label>
+        <input type="date" id="res-fecha" min="">
+      </div>
+      <div class="campo">
+        <label>Hora</label>
+        <input type="time" id="res-hora">
+      </div>
+    </div>
+
+    <!-- Paso 4 — Tus datos -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num" id="paso4-num">4</span> Tus datos</div>
+      <div class="campo">
+        <label>Nombre completo</label>
+        <input type="text" id="res-nombre" placeholder="Tu nombre">
+      </div>
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="tel" id="res-tel" placeholder="Ej: 0981 123456">
+      </div>
+      <div class="campo">
+        <label>Cantidad de personas</label>
+        <select id="res-personas">
+          <option value="1">1 persona</option>
+          <option value="2" selected>2 personas</option>
+          <option value="3">3 personas</option>
+          <option value="4">4 personas</option>
+          <option value="5">5 o más personas</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Comentario (opcional)</label>
+        <textarea id="res-comentario" placeholder="Ej: Es un cumpleaños, necesito silla para bebé, etc."></textarea>
+      </div>
+      <button class="btn-reservar" onclick="enviarReserva()">✓ Confirmar reserva</button>
+    </div>
+
+  </div>
+
+  <!-- Confirmación -->
+  <div class="confirmacion" id="confirmacion">
+    <div class="conf-icono">🎉</div>
+    <div class="conf-titulo">¡Reserva confirmada!</div>
+    <div class="conf-texto">Te esperamos en Estación Alanna Café. Si necesitás cancelar o cambiar el horario, comunicate con nosotros.</div>
+    <div class="conf-detalle" id="conf-detalle"></div>
+    <button class="btn-nueva" onclick="nuevaReserva()">Hacer otra reserva</button>
+  </div>
+
+</div>
+
+<footer><p>ESTACIÓN ALANNA CAFÉ · ARROYOS Y ESTEROS · PARAGUAY</p></footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8",
+  authDomain:"estacion-alanna.firebaseapp.com",
+  projectId:"estacion-alanna",
+  storageBucket:"estacion-alanna.firebasestorage.app",
+  messagingSenderId:"776786709550",
+  appId:"1:776786709550:web:b5b77a46abdbfb363423bf"
+});
+const db = firebase.firestore();
+
+let tipoSel = 'mesa';
+let mesaSel = 1;
+
+// Fecha mínima hoy
+const hoy = new Date();
+document.getElementById('res-fecha').min = hoy.toISOString().split('T')[0];
+document.getElementById('res-fecha').value = hoy.toISOString().split('T')[0];
+document.getElementById('res-hora').value = '10:00';
+
+function selTipo(tipo){
+  tipoSel = tipo;
+  document.getElementById('tipo-mesa').classList.toggle('sel', tipo==='mesa');
+  document.getElementById('tipo-ps').classList.toggle('sel', tipo==='ps');
+  document.getElementById('paso-mesa').style.display = tipo==='mesa' ? 'block' : 'none';
+  document.getElementById('paso3-num').textContent = tipo==='mesa' ? '3' : '2';
+  document.getElementById('paso4-num').textContent = tipo==='mesa' ? '4' : '3';
+}
+
+function selMesa(n){
+  mesaSel = n;
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('mesa-'+i).classList.toggle('sel', i===n);
+  });
+}
+
+function enviarReserva(){
+  const nombre = document.getElementById('res-nombre').value.trim();
+  const tel = document.getElementById('res-tel').value.trim();
+  const fecha = document.getElementById('res-fecha').value;
+  const hora = document.getElementById('res-hora').value;
+  const personas = document.getElementById('res-personas').value;
+  const comentario = document.getElementById('res-comentario').value.trim();
+
+  if(!nombre){alert('Por favor escribí tu nombre.');return;}
+  if(!tel){alert('Por favor escribí tu teléfono.');return;}
+  if(!fecha){alert('Por favor seleccioná la fecha.');return;}
+  if(!hora){alert('Por favor seleccioná la hora.');return;}
+
+  const reserva = {
+    nombre, tel, fecha, hora, personas,
+    tipo: tipoSel,
+    lugar: tipoSel==='mesa' ? 'Mesa '+mesaSel : 'PlayStation',
+    comentario: comentario||'',
+    estado: 'pendiente',
+    timestamp: new Date().toISOString()
+  };
+
+  db.collection('reservas').add(reserva).then(()=>{
+    const fechaFormateada = new Date(fecha+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
+    document.getElementById('conf-detalle').innerHTML = `
+      <div class="conf-fila"><span class="conf-key">Nombre</span><span class="conf-val">${nombre}</span></div>
+      <div class="conf-fila"><span class="conf-key">Lugar</span><span class="conf-val">${tipoSel==='mesa'?'🪑 Mesa '+mesaSel:'🎮 PlayStation'}</span></div>
+      <div class="conf-fila"><span class="conf-key">Fecha</span><span class="conf-val">${fechaFormateada}</span></div>
+      <div class="conf-fila"><span class="conf-key">Hora</span><span class="conf-val">${hora}</span></div>
+      <div class="conf-fila"><span class="conf-key">Personas</span><span class="conf-val">${personas}</span></div>
+      ${comentario?'<div class="conf-fila"><span class="conf-key">Comentario</span><span class="conf-val">'+comentario+'</span></div>':''}
+    `;
+    document.getElementById('formulario').style.display='none';
+    document.getElementById('confirmacion').style.display='block';
+  }).catch(()=>alert('Hubo un error al guardar la reserva. Intentá de nuevo.'));
+}
+
+function nuevaReserva(){
+  document.getElementById('formulario').style.display='block';
+  document.getElementById('confirmacion').style.display='none';
+  document.getElementById('res-nombre').value='';
+  document.getElementById('res-tel').value='';
+  document.getElementById('res-comentario').value='';
+}
+</script>
+</body>
+</html>
