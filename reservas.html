@@ -194,28 +194,118 @@ function enviarReserva(){
   if(!fecha){alert('Por favor seleccioná la fecha.');return;}
   if(!hora){alert('Por favor seleccioná la hora.');return;}
 
-  const reserva = {
-    nombre, tel, fecha, hora, personas,
-    tipo: tipoSel,
-    lugar: tipoSel==='mesa' ? 'Mesa '+mesaSel : 'PlayStation',
-    comentario: comentario||'',
-    estado: 'pendiente',
-    timestamp: new Date().toISOString()
-  };
+  const lugar = tipoSel==='mesa' ? 'Mesa '+mesaSel : 'PlayStation';
 
-  db.collection('reservas').add(reserva).then(()=>{
-    const fechaFormateada = new Date(fecha+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
-    document.getElementById('conf-detalle').innerHTML = `
-      <div class="conf-fila"><span class="conf-key">Nombre</span><span class="conf-val">${nombre}</span></div>
-      <div class="conf-fila"><span class="conf-key">Lugar</span><span class="conf-val">${tipoSel==='mesa'?'🪑 Mesa '+mesaSel:'🎮 PlayStation'}</span></div>
-      <div class="conf-fila"><span class="conf-key">Fecha</span><span class="conf-val">${fechaFormateada}</span></div>
-      <div class="conf-fila"><span class="conf-key">Hora</span><span class="conf-val">${hora}</span></div>
-      <div class="conf-fila"><span class="conf-key">Personas</span><span class="conf-val">${personas}</span></div>
-      ${comentario?'<div class="conf-fila"><span class="conf-key">Comentario</span><span class="conf-val">'+comentario+'</span></div>':''}
-    `;
-    document.getElementById('formulario').style.display='none';
-    document.getElementById('confirmacion').style.display='block';
-  }).catch(()=>alert('Hubo un error al guardar la reserva. Intentá de nuevo.'));
+  // Verificar conflicto de horario
+  const btn = document.querySelector('.btn-reservar');
+  btn.textContent = '⏳ Verificando disponibilidad...';
+  btn.disabled = true;
+
+  // Buscar reservas que choquen — misma fecha, lugar y dentro de 60 minutos
+  db.collection('reservas')
+    .where('fecha','==',fecha)
+    .where('lugar','==',lugar)
+    .where('estado','in',['pendiente','confirmada'])
+    .get()
+    .then(snap=>{
+      const conflictos = snap.docs.map(d=>d.data()).filter(r=>{
+        const horaRes = parseInt(r.hora.replace(':',''));
+        const horaNueva = parseInt(hora.replace(':',''));
+        return Math.abs(horaRes - horaNueva) < 100; // dentro de 1 hora
+      });
+
+      if(conflictos.length > 0){
+        const horaConflicto = conflictos[0].hora;
+        btn.textContent = '✓ Confirmar reserva';
+        btn.disabled = false;
+        mostrarConflicto(lugar, horaConflicto, fecha);
+        return;
+      }
+
+      // Sin conflicto — guardar reserva
+      const reserva = {
+        nombre, tel, fecha, hora, personas,
+        tipo: tipoSel,
+        lugar,
+        comentario: comentario||'',
+        estado: 'pendiente',
+        timestamp: new Date().toISOString()
+      };
+
+      db.collection('reservas').add(reserva).then(()=>{
+        btn.textContent = '✓ Confirmar reserva';
+        btn.disabled = false;
+        const fechaFormateada = new Date(fecha+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
+        document.getElementById('conf-detalle').innerHTML = `
+          <div class="conf-fila"><span class="conf-key">Nombre</span><span class="conf-val">${nombre}</span></div>
+          <div class="conf-fila"><span class="conf-key">Lugar</span><span class="conf-val">${tipoSel==='mesa'?'🪑 Mesa '+mesaSel:'🎮 PlayStation'}</span></div>
+          <div class="conf-fila"><span class="conf-key">Fecha</span><span class="conf-val">${fechaFormateada}</span></div>
+          <div class="conf-fila"><span class="conf-key">Hora</span><span class="conf-val">${hora}</span></div>
+          <div class="conf-fila"><span class="conf-key">Personas</span><span class="conf-val">${personas}</span></div>
+          ${comentario?'<div class="conf-fila"><span class="conf-key">Comentario</span><span class="conf-val">'+comentario+'</span></div>':''}
+        `;
+        document.getElementById('formulario').style.display='none';
+        document.getElementById('confirmacion').style.display='block';
+      }).catch(()=>{
+        btn.textContent = '✓ Confirmar reserva';
+        btn.disabled = false;
+        alert('Hubo un error al guardar la reserva. Intentá de nuevo.');
+      });
+    }).catch(()=>{
+      btn.textContent = '✓ Confirmar reserva';
+      btn.disabled = false;
+      alert('Error al verificar disponibilidad. Intentá de nuevo.');
+    });
+}
+
+function mostrarConflicto(lugar, horaOcupada, fecha){
+  // Calcular horarios alternativos disponibles
+  const [h, m] = horaOcupada.split(':').map(Number);
+  const antes = `${String(h-1).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  const despues = `${String(h+1).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+
+  // Mostrar mensaje de conflicto elegante
+  const conflictoDiv = document.getElementById('conflicto-msg');
+  if(conflictoDiv) conflictoDiv.remove();
+
+  const div = document.createElement('div');
+  div.id = 'conflicto-msg';
+  div.style.cssText = 'background:#FCEBEB;border:2px solid #A32D2D;border-radius:12px;padding:16px;margin-bottom:12px;text-align:center;';
+  div.innerHTML = `
+    <div style="font-size:24px;margin-bottom:8px;">😕</div>
+    <div style="font-size:14px;font-weight:700;color:#A32D2D;margin-bottom:6px;">${lugar} no disponible a las ${horaOcupada}</div>
+    <div style="font-size:12px;color:#7A6050;margin-bottom:12px;">Ya existe una reserva para ese horario. Te sugerimos:</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      ${h > 8 ? `<button onclick="sugerirHorario('${antes}')" style="padding:8px 14px;background:#3B2A1A;color:#FAC775;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">🕐 ${antes}</button>` : ''}
+      <button onclick="sugerirHorario('${despues}')" style="padding:8px 14px;background:#3B2A1A;color:#FAC775;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">🕐 ${despues}</button>
+      ${tipoSel==='mesa' ? '<button onclick="sugerirOtraMesa()" style="padding:8px 14px;background:#3B6D11;color:#EAF3DE;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">🪑 Otra mesa</button>' : ''}
+    </div>
+  `;
+
+  const paso3 = document.querySelector('.paso:nth-child(3)');
+  paso3.parentNode.insertBefore(div, paso3);
+  div.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function sugerirHorario(hora){
+  document.getElementById('res-hora').value = hora;
+  const div = document.getElementById('conflicto-msg');
+  if(div) div.remove();
+  document.getElementById('res-hora').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('res-hora').style.borderColor = '#EF9F27';
+  setTimeout(()=>document.getElementById('res-hora').style.borderColor = '', 2000);
+}
+
+function sugerirOtraMesa(){
+  const div = document.getElementById('conflicto-msg');
+  if(div) div.remove();
+  // Seleccionar la próxima mesa disponible
+  const siguiente = mesaSel < 4 ? mesaSel + 1 : 1;
+  selMesa(siguiente);
+  document.getElementById('paso-mesa').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function REEMPLAZADA_enviarReserva(){
 }
 
 function nuevaReserva(){
