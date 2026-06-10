@@ -16,15 +16,15 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 .topbar-hora{font-size:12px;color:#BA7517;}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;display:inline-block;}
 .sync-dot.ok{background:#3B6D11;}.sync-dot.err{background:var(--rojo);}
-.nav-tabs{display:grid;grid-template-columns:repeat(4,1fr);background:#2C1F0F;}
+.nav-tabs{display:grid;grid-template-columns:repeat(5,1fr);background:#2C1F0F;}
 .nav-tab{padding:10px 4px;background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#BA7517;border-bottom:3px solid transparent;border-right:1px solid #1A1208;}
-.nav-tab:nth-child(4n){border-right:none;}
-.nav-tab:nth-child(-n+4){border-bottom:1px solid #1A1208;}
+.nav-tab:nth-child(5n){border-right:none;}
+.nav-tab:nth-child(-n+5){border-bottom:1px solid #1A1208;}
 .nav-tab.active{color:var(--miel-claro);border-bottom:3px solid var(--miel);background:#1A1208;}
 @media(min-width:700px){
-  .nav-tabs{grid-template-columns:repeat(8,1fr);}
-  .nav-tab:nth-child(4n){border-right:1px solid #1A1208;}
-  .nav-tab:nth-child(8n){border-right:none;}
+  .nav-tabs{grid-template-columns:repeat(10,1fr);}
+  .nav-tab:nth-child(5n){border-right:1px solid #1A1208;}
+  .nav-tab:nth-child(10n){border-right:none;}
   .nav-tab:nth-child(-n+4){border-bottom:3px solid transparent;}
   .nav-tab{font-size:12px;padding:11px 6px;}
 }
@@ -200,6 +200,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-reporte" onclick="showVista('reporte')">📊 Reporte</button>
   <button class="nav-tab" id="tab-torneo" onclick="showVista('torneo')">🏆 Torneo</button>
   <button class="nav-tab" id="tab-reservas" onclick="showVista('reservas')">🗓️ Reservas</button>
+  <button class="nav-tab" id="tab-eventos" onclick="showVista('eventos')">🎊 Eventos</button>
 </div>
 
 <div class="vista activa" id="v-mesas">
@@ -439,6 +440,32 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 
 </div>
 
+
+<div class="vista" id="v-eventos">
+
+  <!-- Métricas -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div class="metric"><div class="metric-lbl">Total</div><div class="metric-val" id="ev-cant-total" style="font-size:20px;">0</div></div>
+    <div class="metric"><div class="metric-lbl">Pendientes</div><div class="metric-val" id="ev-cant-pend" style="font-size:20px;color:#EF9F27;">0</div></div>
+    <div class="metric"><div class="metric-lbl">Confirmados</div><div class="metric-val" id="ev-cant-conf" style="font-size:20px;color:#3B6D11;">0</div></div>
+  </div>
+
+  <!-- Filtros -->
+  <div style="background:#fff;border:1px solid #E8DFC8;border-radius:10px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:12px;color:#7A6050;font-weight:700;">Filtrar:</span>
+    <select id="ev-filtro-estado" onchange="filtrarEventos()" style="padding:6px 10px;border:1px solid #E8DFC8;border-radius:8px;font-size:12px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+      <option value="todos">Todos</option>
+      <option value="pendiente">Pendientes</option>
+      <option value="confirmado">Confirmados</option>
+      <option value="rechazado">Rechazados</option>
+    </select>
+  </div>
+
+  <!-- Lista eventos -->
+  <div id="eventos-lista"><p class="empty-msg">Sin solicitudes de eventos aún</p></div>
+
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
@@ -473,8 +500,8 @@ setInterval(()=>{const d=new Date();document.getElementById('hora').textContent=
 document.getElementById('hora').textContent=new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
 
 function showVista(id){
-  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','reservas'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
-  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
+  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
+  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
   document.getElementById('v-'+id).classList.add('activa');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
   if(id==='resumen')escucharVentas();
@@ -484,6 +511,7 @@ function showVista(id){
   if(id==='reporte'){cargarReporte();}
   if(id==='torneo'){escucharTorneo();}
   if(id==='reservas'){escucharReservas();}
+  if(id==='eventos'){escucharEventos();}
 }
 function volverMesas(){mesaActual=null;showVista('mesas');}
 
@@ -694,6 +722,82 @@ db.collection('playstation').doc('ps1').get().then(snap=>{
 
 
 
+
+
+// EVENTOS
+let eventosData = [];
+let eventosEscuchando = false;
+
+function escucharEventos(){
+  if(eventosEscuchando) return;
+  eventosEscuchando = true;
+  db.collection('eventos').onSnapshot(snap=>{
+    eventosData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    eventosData.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    actualizarMetricasEventos();
+    filtrarEventos();
+    setSyncOk();
+  }, ()=>setSyncErr());
+}
+
+function actualizarMetricasEventos(){
+  document.getElementById('ev-cant-total').textContent = eventosData.length;
+  document.getElementById('ev-cant-pend').textContent = eventosData.filter(e=>e.estado==='pendiente').length;
+  document.getElementById('ev-cant-conf').textContent = eventosData.filter(e=>e.estado==='confirmado').length;
+}
+
+function filtrarEventos(){
+  const filtro = document.getElementById('ev-filtro-estado').value;
+  const filtrados = filtro==='todos' ? eventosData : eventosData.filter(e=>e.estado===filtro);
+  renderEventos(filtrados);
+}
+
+const eventosLabel = {
+  cumpleanos:'🎂 Cumpleaños', baby_shower:'👶 Baby shower',
+  revelacion:'🎀 Revelación de género', reunion:'👥 Reunión',
+  aniversario:'💑 Aniversario', otro:'✨ Otro evento'
+};
+
+function renderEventos(lista){
+  const el = document.getElementById('eventos-lista');
+  if(!el) return;
+  if(lista.length===0){el.innerHTML='<p class="empty-msg">Sin eventos para mostrar</p>';return;}
+  el.innerHTML = lista.map(ev=>{
+    const estado = ev.estado||'pendiente';
+    const estadoLabel = {pendiente:'⏳ Pendiente',confirmado:'✓ Confirmado',rechazado:'✗ Rechazado'}[estado]||estado;
+    const tel = (ev.tel||'').replace(/[^0-9]/g,'');
+    const msgConf = encodeURIComponent('Hola '+ev.nombre+'! 🎊 Nos complace confirmar tu evento "'+( eventosLabel[ev.tipoEvento]||ev.tipoLabel||ev.tipoEvento )+'" en Estación Alanna Café para el '+ev.fecha+' a las '+ev.hora+'. ¡Nos vemos para celebrar! ☕🎉');
+    const msgRech = encodeURIComponent('Hola '+ev.nombre+', te contactamos de Estación Alanna Café. Lamentablemente no podemos confirmar tu evento para la fecha solicitada. Por favor comunicate con nosotros para buscar una alternativa. ☕');
+    const fechaFormateada = ev.fecha ? new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'}) : ev.fecha;
+    return `<div class="ev-card ${estado}">
+      <div class="ev-top">
+        <div>
+          <div class="ev-tipo">${eventosLabel[ev.tipoEvento]||ev.tipoLabel||ev.tipoEvento||'Evento'}</div>
+          <div style="font-size:11px;color:#BA7517;margin-top:2px;">${ev.modalidadLabel||ev.modalidad||''}</div>
+        </div>
+        <span class="ev-estado ${estado}">${estadoLabel}</span>
+      </div>
+      <div class="ev-info">
+        <strong>${ev.nombre}</strong><br>
+        📅 ${fechaFormateada} · 🕐 ${ev.hora}<br>
+        👥 ${ev.personas} personas · 📱 ${ev.tel||'—'}
+      </div>
+      <div class="ev-actions">
+        ${estado==='pendiente'?`<button class="btn-ev-confirmar" onclick="cambiarEstadoEvento('${ev.id}','confirmado')">✓ Confirmar</button>`:''}
+        ${estado==='pendiente'?`<button class="btn-ev-rechazar" onclick="cambiarEstadoEvento('${ev.id}','rechazado')">✗ Rechazar</button>`:''}
+        ${tel&&estado==='confirmado'?`<a class="btn-ev-wsp" href="https://wa.me/595${tel}?text=${msgConf}" target="_blank">💬 Confirmar por WA</a>`:''}
+        ${tel&&estado==='pendiente'?`<a class="btn-ev-wsp" href="https://wa.me/595${tel}?text=${msgConf}" target="_blank">💬 WhatsApp</a>`:''}
+        ${tel&&estado==='rechazado'?`<a class="btn-ev-wsp" style="background:#7A6050;" href="https://wa.me/595${tel}?text=${msgRech}" target="_blank">💬 Avisar</a>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cambiarEstadoEvento(id, estado){
+  const accion = estado==='confirmado'?'confirmar':'rechazar';
+  if(!confirm('¿'+accion.charAt(0).toUpperCase()+accion.slice(1)+' este evento?'))return;
+  db.collection('eventos').doc(id).update({estado}).catch(()=>setSyncErr());
+}
 
 // RESERVAS
 let reservasEscuchando = false;
