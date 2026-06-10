@@ -57,6 +57,22 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
 
 <div class="contenido">
 
+  <!-- Selector principal: Reserva o Evento -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+    <div class="tipo-btn sel" id="modo-reserva" onclick="selModo('reserva')" style="padding:16px 8px;">
+      <div class="tipo-btn-icono">🗓️</div>
+      <div class="tipo-btn-label">Reserva</div>
+      <div class="tipo-btn-sub">Mesa o PlayStation</div>
+    </div>
+    <div class="tipo-btn" id="modo-evento" onclick="selModo('evento')" style="padding:16px 8px;">
+      <div class="tipo-btn-icono">🎊</div>
+      <div class="tipo-btn-label">Evento privado</div>
+      <div class="tipo-btn-sub">Cumpleaños, baby shower...</div>
+    </div>
+  </div>
+
+  <!-- FORMULARIO RESERVA NORMAL -->
+  <div id="formulario-reserva">
   <div id="formulario">
 
     <!-- Paso 1 — Qué reservar -->
@@ -130,7 +146,115 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
 
   </div>
 
-  <!-- Confirmación -->
+  </div> <!-- cierre formulario-reserva -->
+
+  <!-- FORMULARIO EVENTO -->
+  <div id="formulario-evento" style="display:none;">
+
+    <div class="paso" style="background:linear-gradient(135deg,#3B2A1A,#6B4A2A);border:none;">
+      <div style="text-align:center;">
+        <div style="font-size:32px;margin-bottom:6px;">🎊</div>
+        <div style="font-family:'Playfair Display',serif;font-size:17px;color:#FAC775;margin-bottom:4px;">Eventos privados</div>
+        <div style="font-size:12px;color:#BA7517;line-height:1.6;">Celebrá tus momentos especiales en Estación Alanna Café. Completá el formulario y nos contactamos a la brevedad.</div>
+      </div>
+    </div>
+
+    <!-- Tipo de evento -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num">1</span> Tipo de evento</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="tipo-btn sel" id="ev-cumple" onclick="selEvento('cumpleanos',this)">
+          <div class="tipo-btn-icono">🎂</div>
+          <div class="tipo-btn-label">Cumpleaños</div>
+        </div>
+        <div class="tipo-btn" id="ev-baby" onclick="selEvento('baby_shower',this)">
+          <div class="tipo-btn-icono">👶</div>
+          <div class="tipo-btn-label">Baby shower</div>
+        </div>
+        <div class="tipo-btn" id="ev-revelacion" onclick="selEvento('revelacion',this)">
+          <div class="tipo-btn-icono">🎀</div>
+          <div class="tipo-btn-label">Revelación</div>
+        </div>
+        <div class="tipo-btn" id="ev-reunion" onclick="selEvento('reunion',this)">
+          <div class="tipo-btn-icono">👥</div>
+          <div class="tipo-btn-label">Reunión</div>
+        </div>
+        <div class="tipo-btn" id="ev-aniversario" onclick="selEvento('aniversario',this)">
+          <div class="tipo-btn-icono">💑</div>
+          <div class="tipo-btn-label">Aniversario</div>
+        </div>
+        <div class="tipo-btn" id="ev-otro" onclick="selEvento('otro',this)">
+          <div class="tipo-btn-icono">✨</div>
+          <div class="tipo-btn-label">Otro evento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modalidad del evento -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num">2</span> Modalidad</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="tipo-btn sel" id="ev-mod-exclusivo" onclick="selModalidad('exclusivo',this)">
+          <div class="tipo-btn-icono">🔒</div>
+          <div class="tipo-btn-label">Local exclusivo</div>
+          <div class="tipo-btn-sub">Cerramos solo para vos</div>
+        </div>
+        <div class="tipo-btn" id="ev-mod-mesas" onclick="selModalidad('mesas',this)">
+          <div class="tipo-btn-icono">🪑</div>
+          <div class="tipo-btn-label">Varias mesas</div>
+          <div class="tipo-btn-sub">Local sigue abierto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fecha y hora -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num">3</span> Fecha y hora</div>
+      <div class="campo">
+        <label>Fecha del evento</label>
+        <input type="date" id="ev-fecha" min="">
+      </div>
+      <div class="campo">
+        <label>Hora de inicio</label>
+        <input type="time" id="ev-hora">
+      </div>
+    </div>
+
+    <!-- Datos del cliente -->
+    <div class="paso">
+      <div class="paso-titulo"><span class="paso-num">4</span> Tus datos</div>
+      <div class="campo">
+        <label>Nombre completo</label>
+        <input type="text" id="ev-nombre" placeholder="Tu nombre">
+      </div>
+      <div class="campo">
+        <label>Teléfono</label>
+        <input type="tel" id="ev-tel" placeholder="Ej: 0981 123456">
+      </div>
+      <div class="campo">
+        <label>Cantidad de personas</label>
+        <select id="ev-personas">
+          <option value="5-10">5 a 10 personas</option>
+          <option value="10-20" selected>10 a 20 personas</option>
+          <option value="20-30">20 a 30 personas</option>
+          <option value="30+">Más de 30 personas</option>
+        </select>
+      </div>
+      <button class="btn-reservar" onclick="enviarEvento()" style="background:#6B4A2A;">🎊 Enviar solicitud de evento</button>
+    </div>
+
+  </div>
+
+  <!-- Confirmación evento -->
+  <div class="confirmacion" id="confirmacion-evento">
+    <div class="conf-icono">🎊</div>
+    <div class="conf-titulo">¡Solicitud enviada!</div>
+    <div class="conf-texto">Recibimos tu solicitud de evento. Nos comunicaremos con vos a la brevedad para confirmar los detalles y coordinar todo.</div>
+    <div class="conf-detalle" id="conf-detalle-evento"></div>
+    <button class="btn-nueva" onclick="nuevaReserva()">Volver al inicio</button>
+  </div>
+
+  <!-- Confirmación reserva normal -->
   <div class="confirmacion" id="confirmacion">
     <div class="conf-icono">🎉</div>
     <div class="conf-titulo">¡Reserva confirmada!</div>
@@ -161,9 +285,12 @@ let mesaSel = 1;
 
 // Fecha mínima hoy
 const hoy = new Date();
-document.getElementById('res-fecha').min = hoy.toISOString().split('T')[0];
-document.getElementById('res-fecha').value = hoy.toISOString().split('T')[0];
+const hoyStr = hoy.toISOString().split('T')[0];
+document.getElementById('res-fecha').min = hoyStr;
+document.getElementById('res-fecha').value = hoyStr;
 document.getElementById('res-hora').value = '10:00';
+document.getElementById('ev-fecha').min = hoyStr;
+document.getElementById('ev-hora').value = '10:00';
 
 function selTipo(tipo){
   tipoSel = tipo;
@@ -308,7 +435,86 @@ function sugerirOtraMesa(){
 function REEMPLAZADA_enviarReserva(){
 }
 
-function nuevaReserva(){
+// EVENTOS
+let tipoEvento = 'cumpleanos';
+let modalidadEvento = 'exclusivo';
+
+function selModo(modo){
+  document.getElementById('modo-reserva').classList.toggle('sel', modo==='reserva');
+  document.getElementById('modo-evento').classList.toggle('sel', modo==='evento');
+  document.getElementById('formulario-reserva').style.display = modo==='reserva'?'block':'none';
+  document.getElementById('formulario-evento').style.display = modo==='evento'?'block':'none';
+  document.getElementById('confirmacion').style.display='none';
+  document.getElementById('confirmacion-evento').style.display='none';
+}
+
+function selEvento(tipo, el){
+  tipoEvento = tipo;
+  document.querySelectorAll('#formulario-evento .tipo-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function selModalidad(mod, el){
+  modalidadEvento = mod;
+  document.getElementById('ev-mod-exclusivo').classList.toggle('sel', mod==='exclusivo');
+  document.getElementById('ev-mod-mesas').classList.toggle('sel', mod==='mesas');
+}
+
+const eventosLabel = {
+  cumpleanos:'🎂 Cumpleaños', baby_shower:'👶 Baby shower',
+  revelacion:'🎀 Revelación de género', reunion:'👥 Reunión',
+  aniversario:'💑 Aniversario', otro:'✨ Otro evento'
+};
+
+function enviarEvento(){
+  const nombre = document.getElementById('ev-nombre').value.trim();
+  const tel = document.getElementById('ev-tel').value.trim();
+  const fecha = document.getElementById('ev-fecha').value;
+  const hora = document.getElementById('ev-hora').value;
+  const personas = document.getElementById('ev-personas').value;
+
+  if(!nombre){alert('Por favor escribí tu nombre.');return;}
+  if(!tel){alert('Por favor escribí tu teléfono.');return;}
+  if(!fecha){alert('Por favor seleccioná la fecha.');return;}
+  if(!hora){alert('Por favor seleccioná la hora.');return;}
+
+  const evento = {
+    nombre, tel, fecha, hora, personas,
+    tipoEvento, modalidad: modalidadEvento,
+    tipoLabel: eventosLabel[tipoEvento]||tipoEvento,
+    modalidadLabel: modalidadEvento==='exclusivo'?'Local exclusivo':'Varias mesas',
+    tipo: 'evento',
+    estado: 'pendiente',
+    timestamp: new Date().toISOString()
+  };
+
+  const btn = document.querySelector('#formulario-evento .btn-reservar');
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
+
+  db.collection('eventos').add(evento).then(()=>{
+    btn.textContent = '🎊 Enviar solicitud de evento';
+    btn.disabled = false;
+    const fechaFormateada = new Date(fecha+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});
+    document.getElementById('conf-detalle-evento').innerHTML = `
+      <div class="conf-fila"><span class="conf-key">Nombre</span><span class="conf-val">${nombre}</span></div>
+      <div class="conf-fila"><span class="conf-key">Evento</span><span class="conf-val">${eventosLabel[tipoEvento]||tipoEvento}</span></div>
+      <div class="conf-fila"><span class="conf-key">Modalidad</span><span class="conf-val">${modalidadEvento==='exclusivo'?'🔒 Local exclusivo':'🪑 Varias mesas'}</span></div>
+      <div class="conf-fila"><span class="conf-key">Fecha</span><span class="conf-val">${fechaFormateada}</span></div>
+      <div class="conf-fila"><span class="conf-key">Hora</span><span class="conf-val">${hora}</span></div>
+      <div class="conf-fila"><span class="conf-key">Personas</span><span class="conf-val">${personas}</span></div>
+      <div class="conf-fila"><span class="conf-key">Teléfono</span><span class="conf-val">${tel}</span></div>
+    `;
+    document.getElementById('formulario-evento').style.display='none';
+    document.getElementById('confirmacion-evento').style.display='block';
+  }).catch(()=>{
+    btn.textContent = '🎊 Enviar solicitud de evento';
+    btn.disabled = false;
+    alert('Error al enviar. Intentá de nuevo.');
+  });
+}
+
+function REEMPLAZADA_nuevaReserva(){
   document.getElementById('formulario').style.display='block';
   document.getElementById('confirmacion').style.display='none';
   document.getElementById('res-nombre').value='';
