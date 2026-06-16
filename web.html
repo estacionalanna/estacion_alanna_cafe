@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estación Alanna Café — Arroyos y Esteros, Paraguay</title>
+<meta name="description" content="Café, helados, PlayStation y eventos privados en Arroyos y Esteros, Cordillera, Paraguay. Probá nuestros especiales con miel de caña.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cafe:        #3B2A1A;
+  --cafe-oscuro: #251A0F;
+  --miel:        #EF9F27;
+  --miel-claro:  #FAC775;
+  --miel-fondo:  #FAEEDA;
+  --cana:        #3B6D11;
+  --crema:       #FAF6ED;
+  --crema-borde: #E8DFC8;
+  --texto:       #2C1F0F;
+  --suave:       #7A6050;
+  --rojo:        #A32D2D;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: 'Lato', sans-serif; background: var(--crema); color: var(--texto); overflow-x: hidden; }
+
+/* ══════════════ NAV ══════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(37,26,15,0.96);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.4rem;
+  height: 56px;
+  border-bottom: 1px solid rgba(239,159,39,0.2);
+}
+.nav-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: var(--miel-claro);
+  text-decoration: none;
+  letter-spacing: .02em;
+}
+.nav-links {
+  display: flex; gap: 1.4rem; list-style: none;
+}
+.nav-links a {
+  font-size: .78rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: #BA7517; text-decoration: none;
+  transition: color .15s;
+}
+.nav-links a:hover { color: var(--miel-claro); }
+@media (max-width: 600px) { .nav-links { display: none; } }
+
+/* ══════════════ HERO ══════════════ */
+.hero {
+  min-height: 100svh;
+  background: var(--cafe-oscuro);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 80px 1.4rem 3rem;
+  position: relative; overflow: hidden;
+}
+/* vapor animado */
+.vapor {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 320px; height: 260px; pointer-events: none; opacity: .12;
+}
+.vapor-line {
+  position: absolute; bottom: 0;
+  width: 2px; border-radius: 2px;
+  background: linear-gradient(to top, var(--miel), transparent);
+  animation: vapor-rise 3s ease-in infinite;
+}
+.vapor-line:nth-child(1) { left: 30%; height: 120px; animation-delay: 0s; animation-duration: 2.8s; }
+.vapor-line:nth-child(2) { left: 45%; height: 160px; animation-delay: .6s; animation-duration: 3.2s; }
+.vapor-line:nth-child(3) { left: 60%; height: 100px; animation-delay: 1.2s; animation-duration: 2.5s; }
+@keyframes vapor-rise {
+  0%   { transform: translateY(0) scaleX(1); opacity: .8; }
+  50%  { transform: translateY(-60px) scaleX(1.4); opacity: .4; }
+  100% { transform: translateY(-120px) scaleX(.6); opacity: 0; }
+}
+
+.hero-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 70% 50% at 50% 30%, rgba(239,159,39,.13) 0%, transparent 70%);
+}
+.hero-eyebrow {
+  font-size: .72rem; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--miel);
+  margin-bottom: 1rem;
+  animation: fadeUp .6s ease both;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 11vw, 5rem);
+  line-height: 1.05; color: #fff;
+  margin-bottom: .6rem;
+  animation: fadeUp .65s .1s ease both;
+}
+.hero h1 em {
+  font-style: italic; color: var(--miel-claro);
+}
+.hero-sub {
+  font-size: clamp(.9rem, 3.5vw, 1.1rem);
+  color: #BA7517; line-height: 1.6;
+  max-width: 360px; margin: 0 auto 2rem;
+  animation: fadeUp .65s .2s ease both;
+}
+.hero-btns {
+  display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center;
+  animation: fadeUp .65s .3s ease both;
+}
+.btn-primary {
+  padding: .85rem 1.6rem;
+  background: var(--miel);
+  color: var(--cafe-oscuro);
+  border: none; border-radius: 10px;
+  font-family: 'Lato', sans-serif;
+  font-size: .92rem; font-weight: 700;
+  text-decoration: none; cursor: pointer;
+  transition: opacity .2s, transform .15s;
+  letter-spacing: .03em;
+}
+.btn-primary:hover { opacity: .88; transform: translateY(-2px); }
+.btn-outline {
+  padding: .85rem 1.6rem;
+  background: transparent;
+  color: var(--miel-claro);
+  border: 1.5px solid rgba(239,159,39,.5);
+  border-radius: 10px;
+  font-family: 'Lato', sans-serif;
+  font-size: .92rem; font-weight: 700;
+  text-decoration: none; cursor: pointer;
+  transition: border-color .2s, color .2s, transform .15s;
+}
+.btn-outline:hover { border-color: var(--miel); color: var(--miel); transform: translateY(-2px); }
+.hero-scroll {
+  position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+  color: #BA7517; font-size: .72rem; letter-spacing: .1em;
+  text-transform: uppercase; animation: bounce 2s infinite;
+  text-decoration: none;
+}
+
+/* ══════════════ SECCIONES COMUNES ══════════════ */
+section { padding: 4rem 1.4rem; }
+.section-inner { max-width: 680px; margin: 0 auto; }
+.eyebrow {
+  font-size: .7rem; font-weight: 700; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--miel);
+  margin-bottom: .5rem;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  color: var(--cafe); line-height: 1.15; margin-bottom: .8rem;
+}
+.section-desc {
+  font-size: .95rem; color: var(--suave);
+  line-height: 1.7; max-width: 520px;
+}
+.divider {
+  width: 40px; height: 3px;
+  background: var(--miel);
+  border-radius: 2px; margin: 1rem 0 1.4rem;
+}
+
+/* ══════════════ NOSOTROS ══════════════ */
+#nosotros { background: var(--cafe); }
+#nosotros .section-title { color: var(--miel-claro); }
+#nosotros .section-desc { color: #BA7517; }
+#nosotros .divider { background: var(--miel); }
+.nosotros-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin-top: 2rem;
+}
+@media (max-width: 500px) { .nosotros-grid { grid-template-columns: 1fr; } }
+.nos-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(239,159,39,.2);
+  border-radius: 14px; padding: 1.2rem;
+}
+.nos-icon { font-size: 1.8rem; margin-bottom: .6rem; }
+.nos-title { font-size: .82rem; font-weight: 700; color: var(--miel-claro); margin-bottom: .35rem; letter-spacing: .04em; }
+.nos-text  { font-size: .83rem; color: #BA7517; line-height: 1.6; }
+
+/* ══════════════ MENÚ HIGHLIGHTS ══════════════ */
+#menu { background: var(--crema); }
+.menu-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: .8rem; margin-top: 1.6rem;
+}
+@media (min-width: 500px) { .menu-grid { grid-template-columns: repeat(3, 1fr); } }
+.menu-item {
+  background: #fff;
+  border: 1px solid var(--crema-borde);
+  border-radius: 14px; padding: 1.1rem .9rem;
+  text-align: center;
+  transition: border-color .2s, transform .2s;
+}
+.menu-item:hover { border-color: var(--miel); transform: translateY(-2px); }
+.menu-item.estrella { border: 2px solid var(--miel); background: var(--miel-fondo); }
+.m-icon { font-size: 1.6rem; margin-bottom: .5rem; display: block; }
+.m-name { font-size: .85rem; font-weight: 700; color: var(--cafe); margin-bottom: .3rem; }
+.m-name .estrella-tag {
+  display: inline-block; font-size: .65rem;
+  background: var(--miel); color: var(--cafe);
+  border-radius: 6px; padding: 1px 5px;
+  vertical-align: middle; margin-left: 3px; font-weight: 700;
+}
+.m-precio { font-size: .82rem; color: var(--cana); font-weight: 700; }
+.menu-cta {
+  text-align: center; margin-top: 1.6rem;
+}
+
+/* ══════════════ SERVICIOS ══════════════ */
+#servicios { background: var(--miel-fondo); }
+.servicios-grid {
+  display: grid; grid-template-columns: 1fr;
+  gap: 1rem; margin-top: 1.6rem;
+}
+@media (min-width: 500px) { .servicios-grid { grid-template-columns: 1fr 1fr; } }
+.serv-card {
+  background: #fff;
+  border: 1px solid var(--crema-borde);
+  border-radius: 16px; padding: 1.4rem;
+  display: flex; flex-direction: column; gap: .5rem;
+}
+.serv-icon { font-size: 2rem; }
+.serv-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--cafe); }
+.serv-desc  { font-size: .83rem; color: var(--suave); line-height: 1.6; flex: 1; }
+.serv-link  {
+  display: inline-block; margin-top: .4rem;
+  font-size: .78rem; font-weight: 700; color: var(--miel);
+  text-decoration: none; letter-spacing: .04em;
+}
+.serv-link:hover { text-decoration: underline; }
+
+/* ══════════════ GALERÍA ══════════════ */
+#galeria { background: var(--cafe-oscuro); }
+#galeria .section-title { color: var(--miel-claro); }
+#galeria .section-desc { color: #BA7517; }
+#galeria .divider { background: var(--miel); }
+.galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .7rem; margin-top: 1.6rem;
+}
+@media (min-width: 500px) { .galeria-grid { grid-template-columns: repeat(3, 1fr); } }
+.gal-item {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(239,159,39,.15);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: .4rem; cursor: pointer;
+  transition: border-color .2s, background .2s;
+  overflow: hidden; position: relative;
+}
+.gal-item:hover { border-color: var(--miel); background: rgba(239,159,39,.08); }
+.gal-item img {
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: 12px;
+  position: absolute; inset: 0;
+}
+.gal-placeholder {
+  font-size: 2rem; display: block;
+  color: rgba(239,159,39,.4);
+}
+.gal-label {
+  font-size: .7rem; color: rgba(186,117,23,.7);
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+.galeria-nota {
+  text-align: center; margin-top: 1rem;
+  font-size: .78rem; color: rgba(186,117,23,.7);
+  font-style: italic;
+}
+
+/* ══════════════ TORNEO ══════════════ */
+#torneo {
+  background: var(--cafe);
+  text-align: center;
+}
+#torneo .section-title { color: var(--miel-claro); }
+#torneo .divider { margin: 1rem auto 1.4rem; }
+.torneo-banner {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(239,159,39,.25);
+  border-radius: 16px; padding: 2rem 1.4rem;
+  margin-top: 1.6rem;
+}
+.torneo-trofeo { font-size: 3.5rem; margin-bottom: .6rem; }
+.torneo-titulo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; color: var(--miel-claro);
+  margin-bottom: .5rem;
+}
+.torneo-desc { font-size: .88rem; color: #BA7517; line-height: 1.7; margin-bottom: 1.4rem; }
+.torneo-badges {
+  display: flex; gap: .6rem; justify-content: center;
+  flex-wrap: wrap; margin-bottom: 1.4rem;
+}
+.t-badge {
+  background: rgba(239,159,39,.12);
+  border: 1px solid rgba(239,159,39,.3);
+  color: var(--miel); font-size: .72rem; font-weight: 700;
+  padding: .3rem .8rem; border-radius: 20px;
+  letter-spacing: .06em;
+}
+
+/* ══════════════ RESERVAS CTA ══════════════ */
+#reservas {
+  background: var(--miel-fondo);
+  text-align: center;
+}
+.reservas-banner {
+  background: #fff;
+  border: 1px solid var(--crema-borde);
+  border-radius: 16px; padding: 2rem 1.4rem;
+  margin-top: 1.6rem;
+}
+.res-icono { font-size: 2.8rem; margin-bottom: .6rem; }
+.res-titulo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem; color: var(--cafe); margin-bottom: .5rem;
+}
+.res-desc { font-size: .88rem; color: var(--suave); line-height: 1.7; margin-bottom: 1.4rem; }
+.reservas-opciones {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .8rem;
+}
+.res-opcion {
+  background: var(--crema);
+  border: 1.5px solid var(--crema-borde);
+  border-radius: 12px; padding: 1rem .8rem;
+  text-align: center;
+  text-decoration: none; color: var(--cafe);
+  transition: border-color .2s, background .2s;
+  display: block;
+}
+.res-opcion:hover { border-color: var(--miel); background: var(--miel-fondo); }
+.res-opcion .ro-icon { font-size: 1.5rem; display: block; margin-bottom: .4rem; }
+.res-opcion .ro-label { font-size: .8rem; font-weight: 700; }
+.res-opcion .ro-sub { font-size: .72rem; color: var(--suave); margin-top: .2rem; }
+
+/* ══════════════ CONTACTO ══════════════ */
+#contacto { background: var(--cafe-oscuro); }
+#contacto .section-title { color: var(--miel-claro); }
+#contacto .section-desc { color: #BA7517; }
+#contacto .divider { background: var(--miel); }
+.contacto-grid {
+  display: grid; gap: .8rem; margin-top: 1.6rem;
+}
+.c-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(239,159,39,.15);
+  border-radius: 14px; padding: 1.1rem 1.2rem;
+  display: flex; align-items: flex-start; gap: .9rem;
+}
+.c-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: .1rem; }
+.c-label { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--miel); margin-bottom: .25rem; }
+.c-val { font-size: .9rem; color: #e8d8c0; line-height: 1.55; }
+.btn-wsp {
+  display: flex; align-items: center; justify-content: center; gap: .6rem;
+  width: 100%; padding: 1rem;
+  background: #25D366; color: #fff;
+  border: none; border-radius: 12px;
+  font-family: 'Lato', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  text-decoration: none; margin-top: 1rem;
+  cursor: pointer; transition: opacity .2s;
+}
+.btn-wsp:hover { opacity: .88; }
+
+/* ══════════════ FOOTER ══════════════ */
+footer {
+  background: #0D0A06;
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #5A4535;
+  font-size: .78rem;
+  border-top: 1px solid rgba(239,159,39,.1);
+}
+footer strong { color: #BA7517; }
+
+/* ══════════════ ANIMACIONES ══════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .55s ease, transform .55s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">Estación Alanna</a>
+  <ul class="nav-links">
+    <li><a href="#nosotros">Nosotros</a></li>
+    <li><a href="#menu">Menú</a></li>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#torneo">Torneo</a></li>
+    <li><a href="#reservas">Reservas</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="inicio">
+  <div class="hero-glow"></div>
+  <div class="vapor">
+    <div class="vapor-line"></div>
+    <div class="vapor-line"></div>
+    <div class="vapor-line"></div>
+  </div>
+  <p class="hero-eyebrow">☕ Arroyos y Esteros · Paraguay</p>
+  <h1>Estación<br><em>Alanna</em> Café</h1>
+  <p class="hero-sub">Café artesanal con miel de caña, helados, PlayStation y los mejores momentos para compartir.</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="reservas_eventos.html">Hacer una reserva</a>
+    <a class="btn-outline" href="index.html">Ver el menú</a>
+  </div>
+  <a class="hero-scroll" href="#nosotros">↓ descubrí más</a>
+</section>
+
+<!-- NOSOTROS -->
+<section id="nosotros">
+  <div class="section-inner">
+    <p class="eyebrow reveal">Nuestra historia</p>
+    <h2 class="section-title reveal">Un lugar con nombre propio</h2>
+    <div class="divider reveal"></div>
+    <p class="section-desc reveal">
+      Estación Alanna Café nació en el corazón de Arroyos y Esteros con una idea simple: crear un espacio donde cada visita se convierta en un momento especial. El nombre honra a Alanna, la hija que inspira cada taza que servimos.
+    </p>
+    <div class="nosotros-grid">
+      <div class="nos-card reveal">
+        <div class="nos-icon">🍯</div>
+        <div class="nos-title">Miel de caña local</div>
+        <div class="nos-text">Nuestras bebidas estrella usan miel de caña de la región — un sabor único que no encontrás en otro café.</div>
+      </div>
+      <div class="nos-card reveal">
+        <div class="nos-icon">🎮</div>
+        <div class="nos-title">Café + entretenimiento</div>
+        <div class="nos-text">Tomá tu café favorito mientras jugás PlayStation. Una propuesta diferente para toda la familia.</div>
+      </div>
+      <div class="nos-card reveal">
+        <div class="nos-icon">🎂</div>
+        <div class="nos-title">Eventos privados</div>
+        <div class="nos-text">Baby showers, cumpleaños, reuniones — organizamos tu celebración con todo el calor de nuestro café.</div>
+      </div>
+      <div class="nos-card reveal">
+        <div class="nos-icon">📍</div>
+        <div class="nos-title">Arraigados en Arroyos</div>
+        <div class="nos-text">Un café del pueblo, para el pueblo. Orgullosos de Arroyos y Esteros, Cordillera, Paraguay.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MENÚ HIGHLIGHTS -->
+<section id="menu">
+  <div class="section-inner">
+    <p class="eyebrow reveal">Lo que ofrecemos</p>
+    <h2 class="section-title reveal">Nuestro menú</h2>
+    <div class="divider reveal"></div>
+    <p class="section-desc reveal">Desde un expreso clásico hasta nuestros especiales de la casa con miel de caña.</p>
+    <div class="menu-grid">
+      <div class="menu-item estrella reveal">
+        <span class="m-icon">☕</span>
+        <div class="m-name">Estación Arroyos <span class="estrella-tag">★</span></div>
+        <div class="m-precio">₲ 10.000</div>
+      </div>
+      <div class="menu-item estrella reveal">
+        <span class="m-icon">🍵</span>
+        <div class="m-name">Estación Esteros <span class="estrella-tag">★</span></div>
+        <div class="m-precio">₲ 10.000</div>
+      </div>
+      <div class="menu-item reveal">
+        <span class="m-icon">☕</span>
+        <div class="m-name">Capuchino</div>
+        <div class="m-precio">₲ 9.000</div>
+      </div>
+      <div class="menu-item reveal">
+        <span class="m-icon">🍵</span>
+        <div class="m-name">Cocido con leche</div>
+        <div class="m-precio">₲ 7.000</div>
+      </div>
+      <div class="menu-item reveal">
+        <span class="m-icon">🍦</span>
+        <div class="m-name">Helado 2 bochas</div>
+        <div class="m-precio">₲ 5.000</div>
+      </div>
+      <div class="menu-item reveal">
+        <span class="m-icon">🍪</span>
+        <div class="m-name">Brownie</div>
+        <div class="m-precio">₲ 11.000</div>
+      </div>
+    </div>
+    <div class="menu-cta reveal">
+      <a class="btn-primary" href="index.html">Ver menú completo</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS -->
+<section id="servicios">
+  <div class="section-inner">
+    <p class="eyebrow reveal">¿Qué encontrás acá?</p>
+    <h2 class="section-title reveal">Nuestros servicios</h2>
+    <div class="divider reveal"></div>
+    <div class="servicios-grid">
+      <div class="serv-card reveal">
+        <div class="serv-icon">☕</div>
+        <div class="serv-title">Café & Bebidas</div>
+        <div class="serv-desc">Expresos, capuchinos, cocidos y nuestros especiales con miel de caña. También helados, paletas y dulces artesanales.</div>
+        <a class="serv-link" href="index.html">Ver menú →</a>
+      </div>
+      <div class="serv-card reveal">
+        <div class="serv-icon">🎮</div>
+        <div class="serv-title">PlayStation</div>
+        <div class="serv-desc">Alquilá la PlayStation por tiempo y disfrutá con amigos o familia mientras tomás algo rico. Podés reservar tu horario.</div>
+        <a class="serv-link" href="reservas_eventos.html">Reservar PS →</a>
+      </div>
+      <div class="serv-card reveal">
+        <div class="serv-icon">🎊</div>
+        <div class="serv-title">Eventos privados</div>
+        <div class="serv-desc">Cumpleaños, baby showers, revelaciones de género, aniversarios y reuniones. Organizamos tu evento especial.</div>
+        <a class="serv-link" href="reservas_eventos.html">Solicitar evento →</a>
+      </div>
+      <div class="serv-card reveal">
+        <div class="serv-icon">🏆</div>
+        <div class="serv-title">Torneo EA Sports FC</div>
+        <div class="serv-desc">Competí en el torneo de fútbol virtual. Inscripción abierta para todos. ¡Demostrá que sos el mejor!</div>
+        <a class="serv-link" href="inscripcion_torneo.html">Inscribirse →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALERÍA -->
+<section id="galeria">
+  <div class="section-inner">
+    <p class="eyebrow reveal" style="color:var(--miel);">Nuestro espacio</p>
+    <h2 class="section-title reveal">Galería</h2>
+    <div class="divider reveal"></div>
+    <p class="section-desc reveal">Mirá cómo es el ambiente de Estación Alanna Café.</p>
+    <div class="galeria-grid">
+      <div class="gal-item reveal">
+        <span class="gal-placeholder">☕</span>
+        <span class="gal-label">El café</span>
+      </div>
+      <div class="gal-item reveal">
+        <span class="gal-placeholder">🍦</span>
+        <span class="gal-label">Helados</span>
+      </div>
+      <div class="gal-item reveal">
+        <span class="gal-placeholder">🎮</span>
+        <span class="gal-label">PlayStation</span>
+      </div>
+      <div class="gal-item reveal">
+        <span class="gal-placeholder">🍪</span>
+        <span class="gal-label">Dulces</span>
+      </div>
+      <div class="gal-item reveal">
+        <span class="gal-placeholder">🎂</span>
+        <span class="gal-label">Eventos</span>
+      </div>
+      <div class="gal-item reveal">
+        <span class="gal-placeholder">🏆</span>
+        <span class="gal-label">Torneos</span>
+      </div>
+    </div>
+    <p class="galeria-nota reveal">📸 Próximamente fotos reales del local</p>
+  </div>
+</section>
+
+<!-- TORNEO -->
+<section id="torneo">
+  <div class="section-inner">
+    <p class="eyebrow reveal" style="color:var(--miel);text-align:center;">Competencia</p>
+    <h2 class="section-title reveal" style="text-align:center;">Torneo EA Sports FC 2026</h2>
+    <div class="divider reveal" style="margin:1rem auto 0;"></div>
+    <div class="torneo-banner reveal">
+      <div class="torneo-trofeo">🏆</div>
+      <div class="torneo-titulo">¿Te animás a competir?</div>
+      <p class="torneo-desc">
+        Inscribite al torneo de EA Sports FC 2026 en Estación Alanna Café. Jugamos en PlayStation, en grupo y llaves eliminatorias. El mejor se lleva el trofeo y el premio.
+      </p>
+      <div class="torneo-badges">
+        <span class="t-badge">⚽ EA Sports FC 2026</span>
+        <span class="t-badge">🎮 PlayStation</span>
+        <span class="t-badge">🏅 Premio al campeón</span>
+        <span class="t-badge">📍 Arroyos y Esteros</span>
+      </div>
+      <a class="btn-primary" href="inscripcion_torneo.html" style="display:inline-block;">⚽ Inscribirse al torneo</a>
+    </div>
+  </div>
+</section>
+
+<!-- RESERVAS CTA -->
+<section id="reservas">
+  <div class="section-inner">
+    <p class="eyebrow reveal" style="text-align:center;">Sin filas</p>
+    <h2 class="section-title reveal" style="text-align:center;">Reservá online</h2>
+    <div class="divider reveal" style="margin:1rem auto 1.4rem;"></div>
+    <div class="reservas-banner reveal">
+      <div class="res-icono">📅</div>
+      <div class="res-titulo">Asegurá tu lugar</div>
+      <p class="res-desc">Reservá tu mesa del café, el PlayStation o solicitá un evento privado directamente desde acá. Te confirmamos por WhatsApp.</p>
+      <div class="reservas-opciones">
+        <a class="res-opcion" href="reservas_eventos.html">
+          <span class="ro-icon">🪑</span>
+          <span class="ro-label">Mesa del café</span>
+          <span class="ro-sub">Reservar lugar</span>
+        </a>
+        <a class="res-opcion" href="reservas_eventos.html">
+          <span class="ro-icon">🎮</span>
+          <span class="ro-label">PlayStation</span>
+          <span class="ro-sub">Reservar horario</span>
+        </a>
+        <a class="res-opcion" href="reservas_eventos.html" style="grid-column:1/-1;">
+          <span class="ro-icon">🎊</span>
+          <span class="ro-label">Evento privado</span>
+          <span class="ro-sub">Cumpleaños, baby shower, reuniones y más</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO -->
+<section id="contacto">
+  <div class="section-inner">
+    <p class="eyebrow reveal">Encontranos</p>
+    <h2 class="section-title reveal">Contacto</h2>
+    <div class="divider reveal"></div>
+    <div class="contacto-grid">
+      <div class="c-card reveal">
+        <div class="c-icon">📍</div>
+        <div>
+          <div class="c-label">Ubicación</div>
+          <div class="c-val">Arroyos y Esteros<br>Cordillera, Paraguay</div>
+        </div>
+      </div>
+      <div class="c-card reveal">
+        <div class="c-icon">🕐</div>
+        <div>
+          <div class="c-label">Horario</div>
+          <div class="c-val">Lunes a domingo<br>8:00 – 22:00 hs</div>
+        </div>
+      </div>
+      <div class="c-card reveal">
+        <div class="c-icon">☕</div>
+        <div>
+          <div class="c-label">Especialidades</div>
+          <div class="c-val">Estación Arroyos · Estación Esteros<br>Elaborados con miel de caña local</div>
+        </div>
+      </div>
+    </div>
+    <a class="btn-wsp" href="https://wa.me/595984033181?text=Hola!%20Vi%20su%20p%C3%A1gina%20web%20y%20quer%C3%ADa%20consultar%20algo%20%E2%98%95" target="_blank">
+      💬 Escribinos por WhatsApp
+    </a>
+    <p style="text-align:center;font-size:.72rem;color:#5A4535;margin-top:.8rem;">
+    </p>
+  </div>
+</section>
+
+<footer>
+  <strong>Estación Alanna Café</strong> · Arroyos y Esteros, Cordillera, Paraguay<br>
+  <span style="display:block;margin-top:.4rem;">Lunes a domingo · 8:00 – 22:00 hs</span>
+</footer>
+
+<script>
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
