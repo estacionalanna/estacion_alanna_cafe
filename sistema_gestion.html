@@ -179,6 +179,38 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 /* Badge origen inscripción */
 .badge-online{background:#E8F4FD;color:#1565C0;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:0.5px;}
 .badge-presencial{background:#EAF3DE;color:#3B6D11;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:0.5px;}
+
+/* ── MODAL PAGO QR ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-pago{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:0 0 2rem;max-height:92svh;overflow-y:auto;}
+.modal-handle{width:40px;height:4px;background:#E8DFC8;border-radius:2px;margin:12px auto 0;}
+.modal-header{padding:14px 16px 10px;border-bottom:1px solid #F0E8D4;display:flex;align-items:center;justify-content:space-between;}
+.modal-titulo{font-size:14px;font-weight:700;color:var(--cafe);}
+.modal-close{background:none;border:none;font-size:20px;color:var(--texto-suave);cursor:pointer;padding:4px;}
+.modal-monto{text-align:center;padding:14px 16px 0;}
+.modal-monto-lbl{font-size:11px;color:var(--texto-suave);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.modal-monto-val{font-size:32px;font-weight:700;color:var(--cafe);}
+/* tabs banco */
+.banco-tabs{display:flex;gap:6px;padding:12px 16px 0;overflow-x:auto;}
+.banco-tab{flex-shrink:0;padding:6px 12px;border-radius:20px;border:1.5px solid #E8DFC8;background:#FAF6ED;font-size:11px;font-weight:700;color:var(--suave);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.banco-tab.active{background:var(--cafe);color:var(--miel-claro);border-color:var(--cafe);}
+/* panel banco */
+.banco-panel{display:none;padding:12px 16px 0;}
+.banco-panel.active{display:block;}
+.qr-wrap{background:var(--crema);border:1px solid #E8DFC8;border-radius:14px;padding:16px;text-align:center;margin-bottom:10px;}
+.qr-banco-nombre{font-size:12px;font-weight:700;color:var(--cafe);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;}
+.qr-img{width:180px;height:180px;margin:0 auto 10px;display:block;}
+.qr-instruccion{font-size:11px;color:var(--suave);line-height:1.5;}
+.datos-transferencia{background:#fff;border:1px solid #E8DFC8;border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.dato-row{display:flex;align-items:center;padding:10px 12px;border-bottom:1px solid #F0E8D4;}
+.dato-row:last-child{border-bottom:none;}
+.dato-lbl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--suave);width:80px;flex-shrink:0;}
+.dato-val{font-size:13px;font-weight:700;color:var(--cafe);flex:1;}
+.btn-copiar{background:none;border:1px solid #E8DFC8;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:var(--suave);cursor:pointer;}
+.btn-copiar.copiado{background:#EAF3DE;color:#3B6D11;border-color:#3B6D11;}
+.pago-confirmado-btn{width:calc(100% - 32px);margin:4px 16px 0;padding:13px;background:var(--cana);color:#EAF3DE;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+.pago-nota{text-align:center;font-size:11px;color:var(--suave);margin-top:8px;padding:0 16px;}
 </style>
 </head>
 <body>
@@ -227,7 +259,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
       <div class="panel-title">Pedido</div>
       <div id="ticket-lista"><p class="empty-msg">Sin productos</p></div>
       <div class="total-bar"><span class="total-lbl">Total</span><span class="total-amt" id="ticket-total">₲ 0</span></div>
-      <button class="btn-cobrar" onclick="cobrarMesa()">✓ Cobrar y liberar mesa</button>
+      <button class="btn-cobrar" onclick="abrirModalPago('mesa')">💳 Cobrar con QR</button>
     </div>
   </div>
 </div>
@@ -259,7 +291,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
     <div id="ps-menu-lista"></div>
     <div id="ps-ticket-lista"><p class="empty-msg">Sin consumo</p></div>
     <div class="total-bar" style="margin-top:8px;"><span class="total-lbl">Total PS</span><span class="total-amt" id="ps-total">₲ 0</span></div>
-    <button class="btn-cobrar" onclick="cobrarPS()">✓ Cobrar y liberar</button>
+    <button class="btn-cobrar" onclick="abrirModalPago('ps')">💳 Cobrar con QR</button>
   </div>
 </div>
 
@@ -432,6 +464,141 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
     </select>
   </div>
   <div id="eventos-lista"><p class="empty-msg">Sin solicitudes de eventos aún</p></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL DE PAGO CON QR
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-pago">
+  <div class="modal-pago">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-titulo">💳 Cobrar pago</span>
+      <button class="modal-close" onclick="cerrarModalPago()">✕</button>
+    </div>
+    <div class="modal-monto">
+      <div class="modal-monto-lbl">Total a cobrar</div>
+      <div class="modal-monto-val" id="modal-monto-val">₲ 0</div>
+    </div>
+
+    <!-- Tabs de banco -->
+    <div class="banco-tabs">
+      <button class="banco-tab active" onclick="selBanco('ueno')">🏦 Ueno Bank</button>
+      <button class="banco-tab" onclick="selBanco('tufinan')">🏦 Tu Financiera</button>
+      <button class="banco-tab" onclick="selBanco('familiar')">🏦 Bco. Familiar</button>
+    </div>
+
+    <!-- ── UENO BANK ── -->
+    <div class="banco-panel active" id="panel-ueno">
+      <div class="qr-wrap">
+        <div class="qr-banco-nombre">Ueno Bank Paraguay</div>
+        <img class="qr-img" id="qr-ueno-img"
+             src="" alt="QR Ueno Bank">
+        <div class="qr-instruccion">Escaneá con tu app bancaria para ver los datos de transferencia</div>
+      </div>
+      <div class="datos-transferencia">
+        <div class="dato-row">
+          <span class="dato-lbl">Banco</span>
+          <span class="dato-val">Ueno Bank</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Tipo</span>
+          <span class="dato-val">Cuenta Corriente</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Número</span>
+          <span class="dato-val">614165672
+            <button class="btn-copiar" onclick="copiar(this,'614165672')">copiar</button>
+          </span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Titular</span>
+          <span class="dato-val">Jose Gabriel Martinez</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">CI</span>
+          <span class="dato-val">4391405
+            <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TU FINANCIERA ── -->
+    <div class="banco-panel" id="panel-tufinan">
+      <div class="qr-wrap">
+        <div class="qr-banco-nombre">Tu Financiera Paraguay</div>
+        <img class="qr-img" id="qr-tufinan-img"
+             src="" alt="QR Tu Financiera">
+        <div class="qr-instruccion">Escaneá con tu app bancaria para ver los datos de transferencia</div>
+      </div>
+      <div class="datos-transferencia">
+        <div class="dato-row">
+          <span class="dato-lbl">Banco</span>
+          <span class="dato-val">Tu Financiera</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Tipo</span>
+          <span class="dato-val">Caja de Ahorro</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Número</span>
+          <span class="dato-val">42487527
+            <button class="btn-copiar" onclick="copiar(this,'42487527')">copiar</button>
+          </span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Titular</span>
+          <span class="dato-val">Jose Gabriel Martinez</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">CI</span>
+          <span class="dato-val">4391405
+            <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BANCO FAMILIAR ── -->
+    <div class="banco-panel" id="panel-familiar">
+      <div class="qr-wrap">
+        <div class="qr-banco-nombre">Banco Familiar Paraguay</div>
+        <img class="qr-img" id="qr-familiar-img"
+             src="" alt="QR Banco Familiar">
+        <div class="qr-instruccion">Escaneá con tu app bancaria para ver los datos de transferencia</div>
+      </div>
+      <div class="datos-transferencia">
+        <div class="dato-row">
+          <span class="dato-lbl">Banco</span>
+          <span class="dato-val">Banco Familiar</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Tipo</span>
+          <span class="dato-val">Caja de Ahorro</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Número</span>
+          <span class="dato-val">14-3679716
+            <button class="btn-copiar" onclick="copiar(this,'14-3679716')">copiar</button>
+          </span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">Titular</span>
+          <span class="dato-val">Jose Gabriel Martinez</span>
+        </div>
+        <div class="dato-row">
+          <span class="dato-lbl">CI</span>
+          <span class="dato-val">4391405
+            <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <button class="pago-confirmado-btn" onclick="confirmarPago()">✓ Pago recibido — registrar venta</button>
+    <div class="pago-nota">El QR es estático. El cliente escanea, ve tus datos y hace la transferencia desde su app.</div>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -1430,6 +1597,115 @@ function marcarSalida(id, nombre){
 }
 
 setInterval(()=>{ if(document.getElementById('v-empleados').classList.contains('activa')) renderEmpleados(); }, 60000);
+
+// ══════════════════════════════════════════
+// MODAL DE PAGO CON QR ESTÁTICO
+// ══════════════════════════════════════════
+let modalOrigen = null; // 'mesa' o 'ps'
+
+// Datos de los bancos
+const BANCOS = {
+  ueno: {
+    nombre: 'Ueno Bank',
+    cuenta: '614165672',
+    tipo:   'Cta. Cte.',
+    titular:'Jose Gabriel Martinez',
+    ci:     '4391405'
+  },
+  tufinan: {
+    nombre: 'Tu Financiera',
+    cuenta: '42487527',
+    tipo:   'Caja de Ahorro',
+    titular:'Jose Gabriel Martinez',
+    ci:     '4391405'
+  },
+  familiar: {
+    nombre: 'Banco Familiar',
+    cuenta: '14-3679716',
+    tipo:   'Caja de Ahorro',
+    titular:'Jose Gabriel Martinez',
+    ci:     '4391405'
+  }
+};
+
+// Genera URL del QR usando api.qrserver.com (gratis, sin API key)
+function qrURL(texto) {
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' +
+    encodeURIComponent(texto);
+}
+
+function generarQRs() {
+  Object.entries(BANCOS).forEach(([key, b]) => {
+    const texto = [
+      b.nombre,
+      b.tipo + ': ' + (b.cuenta || 'Ver datos'),
+      'Titular: ' + b.titular,
+      'CI: ' + b.ci
+    ].join(' | ');
+    const img = document.getElementById('qr-' + key + '-img');
+    if (img) img.src = qrURL(texto);
+  });
+}
+
+function abrirModalPago(origen) {
+  modalOrigen = origen;
+  let total = 0;
+  let descripcion = '';
+
+  if (origen === 'mesa') {
+    const d = mesasData[mesaActual] || { pedido: {} };
+    total = calcTotal(d.pedido);
+    const items = Object.values(d.pedido || {}).reduce((a,b)=>a+b, 0);
+    if (items === 0) { cobrarMesa(); return; }
+    descripcion = 'Mesa ' + mesaActual;
+  } else {
+    total = calcTotal(psData.pedido || {});
+    descripcion = 'PlayStation';
+  }
+
+  document.getElementById('modal-monto-val').textContent = fGs(total);
+  generarQRs();
+  selBanco('ueno');
+  document.getElementById('modal-pago').classList.add('show');
+}
+
+function cerrarModalPago() {
+  document.getElementById('modal-pago').classList.remove('show');
+  modalOrigen = null;
+}
+
+function selBanco(key) {
+  // tabs
+  document.querySelectorAll('.banco-tab').forEach((t, i) => {
+    const keys = ['ueno','tufinan','familiar'];
+    t.classList.toggle('active', keys[i] === key);
+  });
+  // panels
+  document.querySelectorAll('.banco-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + key).classList.add('active');
+}
+
+function copiar(btn, texto) {
+  navigator.clipboard.writeText(texto).then(() => {
+    btn.textContent = '✓ copiado';
+    btn.classList.add('copiado');
+    setTimeout(() => { btn.textContent = 'copiar'; btn.classList.remove('copiado'); }, 2000);
+  });
+}
+
+function confirmarPago() {
+  cerrarModalPago();
+  if (modalOrigen === 'mesa' || document.getElementById('v-pedido').classList.contains('activa')) {
+    cobrarMesa();
+  } else {
+    cobrarPS();
+  }
+}
+
+// Cerrar modal tocando el overlay
+document.getElementById('modal-pago').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalPago();
+});
 
 escucharMesas();
 </script>
