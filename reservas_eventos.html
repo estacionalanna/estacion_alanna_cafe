@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservas & Eventos — Estación Alanna Café</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cafe:        #3B2A1A;
+  --cafe-oscuro: #251A0F;
+  --miel:        #EF9F27;
+  --miel-claro:  #FAC775;
+  --miel-fondo:  #FAEEDA;
+  --cana:        #3B6D11;
+  --crema:       #FAF6ED;
+  --crema-borde: #E8DFC8;
+  --texto:       #2C1F0F;
+  --suave:       #7A6050;
+  --rojo:        #A32D2D;
+  --blanco:      #FFFFFF;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: 'Lato', sans-serif; background: var(--crema); color: var(--texto); min-height: 100vh; }
+
+/* ── HERO ── */
+.hero {
+  background: var(--cafe-oscuro);
+  padding: 3rem 1.4rem 2.4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(239,159,39,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-logo {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--miel);
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+.hero-logo-placeholder {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--miel);
+  background: var(--cafe);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 1rem;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 7vw, 2.8rem);
+  color: var(--miel-claro);
+  line-height: 1.15;
+  margin-bottom: .5rem;
+}
+.hero-sub {
+  font-size: .92rem;
+  color: #BA7517;
+  letter-spacing: .04em;
+}
+.hero-sub strong { color: var(--miel-claro); }
+
+/* ── TABS ── */
+.tabs-wrap {
+  background: var(--cafe);
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tab-btn {
+  flex: 1;
+  padding: 14px 8px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-family: 'Lato', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #BA7517;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn.active {
+  color: var(--miel-claro);
+  border-bottom-color: var(--miel);
+  background: #1A1208;
+}
+
+/* ── SECTIONS ── */
+.section { display: none; padding: 1.4rem; max-width: 520px; margin: 0 auto; }
+.section.activa { display: block; }
+
+.section-eyebrow {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--miel);
+  margin-bottom: .4rem;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--cafe);
+  margin-bottom: .4rem;
+}
+.section-desc {
+  font-size: .88rem;
+  color: var(--suave);
+  line-height: 1.6;
+  margin-bottom: 1.4rem;
+}
+
+/* ── TIPO CARDS (selector visual) ── */
+.tipo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 1.2rem;
+}
+.tipo-card {
+  background: var(--blanco);
+  border: 2px solid var(--crema-borde);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.tipo-card.sel {
+  border-color: var(--miel);
+  background: var(--miel-fondo);
+}
+.tipo-card .tipo-icon { font-size: 1.8rem; margin-bottom: 6px; display: block; }
+.tipo-card .tipo-label { font-size: 12px; font-weight: 700; color: var(--cafe); }
+.tipo-card.sel .tipo-label { color: #854F0B; }
+
+/* ── FORM ── */
+.card {
+  background: var(--blanco);
+  border: 1px solid var(--crema-borde);
+  border-radius: 14px;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+.card-title {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #BA7517;
+  margin-bottom: 1rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--crema-borde);
+}
+
+.field { margin-bottom: .9rem; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: block;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--suave);
+  margin-bottom: .35rem;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: .82rem 1rem;
+  border: 1.5px solid var(--crema-borde);
+  border-radius: 10px;
+  font-size: .95rem;
+  font-family: 'Lato', sans-serif;
+  color: var(--texto);
+  background: var(--crema);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  -webkit-appearance: none;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--miel);
+  box-shadow: 0 0 0 3px rgba(239,159,39,0.15);
+  background: #fff;
+}
+.field textarea { resize: vertical; min-height: 80px; }
+.field select option { background: #fff; }
+
+.dos-cols { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+
+/* personas stepper */
+.stepper {
+  display: flex; align-items: center; gap: 10px;
+}
+.step-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--crema-borde);
+  background: var(--crema);
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--cafe);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Lato', sans-serif;
+  font-weight: 700;
+}
+.step-val {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--cafe);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* submit btn */
+.btn-submit {
+  width: 100%;
+  padding: 1rem;
+  background: var(--cafe);
+  color: var(--miel-claro);
+  border: none;
+  border-radius: 12px;
+  font-family: 'Lato', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: opacity .2s, transform .15s;
+  margin-top: .4rem;
+}
+.btn-submit:hover { opacity: .88; transform: translateY(-1px); }
+.btn-submit:active { transform: scale(.98); }
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* ── EVENTO TIPOS ── */
+.eventos-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 1.2rem;
+}
+.ev-card {
+  background: var(--blanco);
+  border: 2px solid var(--crema-borde);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.ev-card.sel { border-color: var(--miel); background: var(--miel-fondo); }
+.ev-card .ev-icon { font-size: 1.5rem; margin-bottom: 4px; display: block; }
+.ev-card .ev-label { font-size: 11px; font-weight: 700; color: var(--cafe); }
+.ev-card.sel .ev-label { color: #854F0B; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 1.5rem; left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--cafe);
+  color: var(--miel-claro);
+  padding: .85rem 1.4rem;
+  border-radius: 12px;
+  font-size: .9rem; font-weight: 700;
+  z-index: 999;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+  max-width: 320px; text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,.25);
+  border: 1px solid var(--miel);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.error { background: var(--rojo); border-color: #f7c1c1; color: #fff; }
+
+/* ── SUCCESS ── */
+.success-box {
+  display: none;
+  background: var(--blanco);
+  border: 2px solid var(--cana);
+  border-radius: 16px;
+  padding: 2rem 1.4rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.success-box.show { display: block; }
+.success-box .s-icon { font-size: 2.8rem; margin-bottom: .8rem; }
+.success-box h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem; color: var(--cafe); margin-bottom: .5rem;
+}
+.success-box p { font-size: .88rem; color: var(--suave); line-height: 1.6; }
+.success-box p strong { color: var(--miel); }
+.btn-nueva {
+  margin-top: 1.2rem;
+  padding: .75rem 1.4rem;
+  background: var(--miel-fondo);
+  color: #854F0B;
+  border: 1.5px solid var(--miel);
+  border-radius: 10px;
+  font-family: 'Lato', sans-serif;
+  font-size: .88rem; font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── AVISO horario ── */
+.aviso {
+  background: var(--miel-fondo);
+  border: 1px solid #F5C842;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  font-size: .82rem;
+  color: #854F0B;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+  display: flex; gap: .5rem;
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 2rem 1rem 3rem;
+  color: var(--suave);
+  font-size: .78rem;
+  border-top: 1px solid var(--crema-borde);
+  margin-top: 1rem;
+}
+footer strong { color: var(--cafe); }
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.section.activa { animation: fadeUp .3s ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-logo-placeholder">☕</div>
+  <h1>Estación Alanna Café</h1>
+  <p class="hero-sub">Arroyos y Esteros, Cordillera · <strong>Paraguay</strong></p>
+</header>
+
+<!-- TABS -->
+<div class="tabs-wrap">
+  <button class="tab-btn active" id="tab-reserva" onclick="showTab('reserva')">🪑 Reservar mesa / PS</button>
+  <button class="tab-btn" id="tab-evento" onclick="showTab('evento')">🎊 Evento privado</button>
+</div>
+
+<!-- ══════════════════ RESERVAS ══════════════════ -->
+<section class="section activa" id="s-reserva">
+
+  <div style="margin-top:1rem;">
+    <div class="section-eyebrow">Reservas</div>
+    <h2 class="section-title">Reservá tu lugar</h2>
+    <p class="section-desc">Elegí mesa del café o PlayStation y asegurá tu lugar. Te confirmamos por WhatsApp.</p>
+  </div>
+
+  <!-- success -->
+  <div class="success-box" id="res-success">
+    <div class="s-icon">✅</div>
+    <h3>¡Reserva enviada!</h3>
+    <p>Recibimos tu solicitud. Te confirmamos por <strong>WhatsApp</strong> a la brevedad.</p>
+    <button class="btn-nueva" onclick="nuevaReserva()">+ Hacer otra reserva</button>
+  </div>
+
+  <!-- form -->
+  <div id="res-form">
+    <!-- tipo -->
+    <div class="tipo-grid">
+      <div class="tipo-card sel" id="tipo-mesa" onclick="selTipo('mesa')">
+        <span class="tipo-icon">🪑</span>
+        <span class="tipo-label">Mesa del café</span>
+      </div>
+      <div class="tipo-card" id="tipo-ps" onclick="selTipo('ps')">
+        <span class="tipo-icon">🎮</span>
+        <span class="tipo-label">PlayStation</span>
+      </div>
+    </div>
+
+    <div class="aviso">
+      ☕ Horario de atención: <strong>lunes a domingo, 8:00 – 22:00 hs</strong>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tus datos</div>
+      <div class="field">
+        <label>Nombre completo</label>
+        <input id="res-nombre" type="text" placeholder="Tu nombre y apellido" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>WhatsApp</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="background:var(--crema);border:1.5px solid var(--crema-borde);border-radius:10px;padding:.82rem .8rem;font-weight:700;color:var(--cana);white-space:nowrap;font-size:.95rem;">🇵🇾 +595</div>
+          <input id="res-tel" type="tel" placeholder="0981 123 456" inputmode="numeric" style="flex:1;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Detalles de la reserva</div>
+      <div class="dos-cols">
+        <div class="field">
+          <label>Fecha</label>
+          <input id="res-fecha" type="date">
+        </div>
+        <div class="field">
+          <label>Hora</label>
+          <input id="res-hora" type="time" min="08:00" max="22:00">
+        </div>
+      </div>
+      <div class="field">
+        <label>Cantidad de personas</label>
+        <div class="stepper">
+          <button class="step-btn" onclick="cambiarPersonas(-1)">−</button>
+          <span class="step-val" id="res-personas-val">2</span>
+          <button class="step-btn" onclick="cambiarPersonas(1)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Comentario (opcional)</label>
+        <textarea id="res-comentario" placeholder="Ej: cumpleaños, necesito silla alta, etc."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btn-reservar" onclick="enviarReserva()">
+      📅 Enviar reserva
+    </button>
+  </div>
+</section>
+
+<!-- ══════════════════ EVENTOS ══════════════════ -->
+<section class="section" id="s-evento">
+
+  <div style="margin-top:1rem;">
+    <div class="section-eyebrow">Eventos privados</div>
+    <h2 class="section-title">Celebrá con nosotros</h2>
+    <p class="section-desc">Organizamos tu evento especial en Estación Alanna. Completá el formulario y te contactamos para coordinar todos los detalles.</p>
+  </div>
+
+  <!-- success -->
+  <div class="success-box" id="ev-success">
+    <div class="s-icon">🎉</div>
+    <h3>¡Solicitud enviada!</h3>
+    <p>Recibimos tu solicitud de evento. Te contactamos por <strong>WhatsApp</strong> para coordinar todos los detalles.</p>
+    <button class="btn-nueva" onclick="nuevoEvento()">+ Solicitar otro evento</button>
+  </div>
+
+  <!-- form -->
+  <div id="ev-form">
+
+    <!-- tipo evento -->
+    <div class="eventos-grid">
+      <div class="ev-card sel" data-tipo="cumpleanos" onclick="selEvento(this,'cumpleanos','🎂 Cumpleaños')">
+        <span class="ev-icon">🎂</span>
+        <span class="ev-label">Cumpleaños</span>
+      </div>
+      <div class="ev-card" data-tipo="baby_shower" onclick="selEvento(this,'baby_shower','👶 Baby shower')">
+        <span class="ev-icon">👶</span>
+        <span class="ev-label">Baby shower</span>
+      </div>
+      <div class="ev-card" data-tipo="revelacion" onclick="selEvento(this,'revelacion','🎀 Revelación de género')">
+        <span class="ev-icon">🎀</span>
+        <span class="ev-label">Revelación de género</span>
+      </div>
+      <div class="ev-card" data-tipo="aniversario" onclick="selEvento(this,'aniversario','💑 Aniversario')">
+        <span class="ev-icon">💑</span>
+        <span class="ev-label">Aniversario</span>
+      </div>
+      <div class="ev-card" data-tipo="reunion" onclick="selEvento(this,'reunion','👥 Reunión')">
+        <span class="ev-icon">👥</span>
+        <span class="ev-label">Reunión</span>
+      </div>
+      <div class="ev-card" data-tipo="otro" onclick="selEvento(this,'otro','✨ Otro evento')">
+        <span class="ev-icon">✨</span>
+        <span class="ev-label">Otro</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tus datos</div>
+      <div class="field">
+        <label>Nombre completo</label>
+        <input id="ev-nombre" type="text" placeholder="Tu nombre y apellido" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>WhatsApp</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="background:var(--crema);border:1.5px solid var(--crema-borde);border-radius:10px;padding:.82rem .8rem;font-weight:700;color:var(--cana);white-space:nowrap;font-size:.95rem;">🇵🇾 +595</div>
+          <input id="ev-tel" type="tel" placeholder="0981 123 456" inputmode="numeric" style="flex:1;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Detalles del evento</div>
+      <div class="dos-cols">
+        <div class="field">
+          <label>Fecha deseada</label>
+          <input id="ev-fecha" type="date">
+        </div>
+        <div class="field">
+          <label>Hora estimada</label>
+          <input id="ev-hora" type="time">
+        </div>
+      </div>
+      <div class="field">
+        <label>Cantidad de personas</label>
+        <div class="stepper">
+          <button class="step-btn" onclick="cambiarPersonasEv(-1)">−</button>
+          <span class="step-val" id="ev-personas-val">10</span>
+          <button class="step-btn" onclick="cambiarPersonasEv(1)">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Modalidad</label>
+        <select id="ev-modalidad">
+          <option value="solo_lugar">Solo el lugar (traigo mis cosas)</option>
+          <option value="con_cafe">Lugar + café y bebidas</option>
+          <option value="completo">Lugar + café + pastelería completa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Contanos más sobre tu evento</label>
+        <textarea id="ev-descripcion" placeholder="Ej: cumpleaños de 15 años, necesito decoración, el festejado se llama..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btn-evento" onclick="enviarEvento()">
+      🎊 Enviar solicitud
+    </button>
+  </div>
+</section>
+
+<footer>
+  <strong>Estación Alanna Café</strong> · Arroyos y Esteros, Cordillera, Paraguay<br>
+  <span style="margin-top:4px;display:block;">Lunes a domingo · 8:00 – 22:00 hs</span>
+</footer>
+
+<div id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:            "AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8",
+  authDomain:        "estacion-alanna.firebaseapp.com",
+  projectId:         "estacion-alanna",
+  storageBucket:     "estacion-alanna.firebasestorage.app",
+  messagingSenderId: "776786709550",
+  appId:             "1:776786709550:web:b5b77a46abdbfb363423bf"
+});
+const db = firebase.firestore();
+
+// ── TAB ──────────────────────────────────────────
+function showTab(id) {
+  ['reserva','evento'].forEach(t => {
+    document.getElementById('s-'+t).classList.toggle('activa', t===id);
+    document.getElementById('tab-'+t).classList.toggle('active', t===id);
+  });
+  window.scrollTo({top: document.querySelector('.tabs-wrap').offsetTop - 10, behavior:'smooth'});
+}
+
+// ── TOAST ────────────────────────────────────────
+function toast(msg, esError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (esError ? ' error' : '');
+  setTimeout(() => t.className = '', 3200);
+}
+
+// ── RESERVAS ─────────────────────────────────────
+let tipoReserva = 'mesa';
+let personasRes = 2;
+
+function selTipo(tipo) {
+  tipoReserva = tipo;
+  document.getElementById('tipo-mesa').classList.toggle('sel', tipo==='mesa');
+  document.getElementById('tipo-ps').classList.toggle('sel', tipo==='ps');
+}
+
+function cambiarPersonas(d) {
+  personasRes = Math.max(1, Math.min(20, personasRes + d));
+  document.getElementById('res-personas-val').textContent = personasRes;
+}
+
+// fecha mínima = hoy
+(function(){
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('res-fecha').min = hoy;
+  document.getElementById('ev-fecha').min  = hoy;
+})();
+
+async function enviarReserva() {
+  const nombre    = document.getElementById('res-nombre').value.trim();
+  const tel       = document.getElementById('res-tel').value.trim();
+  const fecha     = document.getElementById('res-fecha').value;
+  const hora      = document.getElementById('res-hora').value;
+  const comentario = document.getElementById('res-comentario').value.trim();
+
+  if (!nombre)  return toast('⚠️ Ingresá tu nombre', true);
+  if (!tel)     return toast('⚠️ Ingresá tu WhatsApp', true);
+  if (!fecha)   return toast('⚠️ Seleccioná la fecha', true);
+  if (!hora)    return toast('⚠️ Seleccioná la hora', true);
+
+  const btn = document.getElementById('btn-reservar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const lugarLabel = tipoReserva === 'mesa' ? 'Mesa del café' : 'PlayStation';
+
+  try {
+    await db.collection('reservas').add({
+      nombre,
+      tel:      '+595' + tel.replace(/\D/g,''),
+      fecha,
+      hora,
+      personas: personasRes,
+      tipo:     tipoReserva,
+      lugar:    lugarLabel,
+      comentario,
+      estado:   'pendiente',
+      origen:   'web_publica',
+      fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('res-form').style.display    = 'none';
+    document.getElementById('res-success').classList.add('show');
+
+  } catch(e) {
+    console.error(e);
+    toast('❌ Error al enviar. Intentá de nuevo.', true);
+    btn.disabled    = false;
+    btn.textContent = '📅 Enviar reserva';
+  }
+}
+
+function nuevaReserva() {
+  document.getElementById('res-success').classList.remove('show');
+  document.getElementById('res-form').style.display = '';
+  document.getElementById('res-nombre').value    = '';
+  document.getElementById('res-tel').value       = '';
+  document.getElementById('res-fecha').value     = '';
+  document.getElementById('res-hora').value      = '';
+  document.getElementById('res-comentario').value = '';
+  personasRes = 2;
+  document.getElementById('res-personas-val').textContent = '2';
+  tipoReserva = 'mesa';
+  selTipo('mesa');
+  document.getElementById('btn-reservar').disabled    = false;
+  document.getElementById('btn-reservar').textContent = '📅 Enviar reserva';
+}
+
+// ── EVENTOS ──────────────────────────────────────
+let tipoEvento     = 'cumpleanos';
+let tipoEventoLabel= '🎂 Cumpleaños';
+let personasEv     = 10;
+
+function selEvento(el, tipo, label) {
+  document.querySelectorAll('.ev-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  tipoEvento      = tipo;
+  tipoEventoLabel = label;
+}
+
+function cambiarPersonasEv(d) {
+  personasEv = Math.max(1, Math.min(200, personasEv + d));
+  document.getElementById('ev-personas-val').textContent = personasEv;
+}
+
+const modalidadLabel = {
+  'solo_lugar':  'Solo el lugar',
+  'con_cafe':    'Lugar + café y bebidas',
+  'completo':    'Lugar + café + pastelería'
+};
+
+async function enviarEvento() {
+  const nombre      = document.getElementById('ev-nombre').value.trim();
+  const tel         = document.getElementById('ev-tel').value.trim();
+  const fecha       = document.getElementById('ev-fecha').value;
+  const hora        = document.getElementById('ev-hora').value;
+  const modalidad   = document.getElementById('ev-modalidad').value;
+  const descripcion = document.getElementById('ev-descripcion').value.trim();
+
+  if (!nombre)  return toast('⚠️ Ingresá tu nombre', true);
+  if (!tel)     return toast('⚠️ Ingresá tu WhatsApp', true);
+  if (!fecha)   return toast('⚠️ Seleccioná la fecha deseada', true);
+  if (!hora)    return toast('⚠️ Seleccioná la hora estimada', true);
+
+  const btn = document.getElementById('btn-evento');
+  btn.disabled    = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    await db.collection('eventos').add({
+      nombre,
+      tel:          '+595' + tel.replace(/\D/g,''),
+      fecha,
+      hora,
+      personas:     personasEv,
+      tipoEvento,
+      tipoLabel:    tipoEventoLabel,
+      modalidad,
+      modalidadLabel: modalidadLabel[modalidad] || modalidad,
+      descripcion,
+      estado:       'pendiente',
+      origen:       'web_publica',
+      fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('ev-form').style.display    = 'none';
+    document.getElementById('ev-success').classList.add('show');
+
+  } catch(e) {
+    console.error(e);
+    toast('❌ Error al enviar. Intentá de nuevo.', true);
+    btn.disabled    = false;
+    btn.textContent = '🎊 Enviar solicitud';
+  }
+}
+
+function nuevoEvento() {
+  document.getElementById('ev-success').classList.remove('show');
+  document.getElementById('ev-form').style.display = '';
+  document.getElementById('ev-nombre').value      = '';
+  document.getElementById('ev-tel').value         = '';
+  document.getElementById('ev-fecha').value       = '';
+  document.getElementById('ev-hora').value        = '';
+  document.getElementById('ev-descripcion').value = '';
+  personasEv = 10;
+  document.getElementById('ev-personas-val').textContent = '10';
+  tipoEvento      = 'cumpleanos';
+  tipoEventoLabel = '🎂 Cumpleaños';
+  document.querySelectorAll('.ev-card').forEach((c,i) => c.classList.toggle('sel', i===0));
+  document.getElementById('btn-evento').disabled    = false;
+  document.getElementById('btn-evento').textContent = '🎊 Enviar solicitud';
+}
+</script>
+</body>
+</html>
