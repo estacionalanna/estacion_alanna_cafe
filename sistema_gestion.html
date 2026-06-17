@@ -19,6 +19,23 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 .stock-alerta-badge{display:none;align-items:center;gap:4px;background:var(--rojo);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;cursor:pointer;animation:pulso 1.5s infinite;}
 .stock-alerta-badge.show{display:flex;}
 @keyframes pulso{0%,100%{opacity:1;}50%{opacity:.6;}}
+/* ── MODAL CUMPLEAÑOS ── */
+.modal-cumple-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:600;display:none;align-items:center;justify-content:center;padding:1.2rem;}
+.modal-cumple-overlay.show{display:flex;}
+.modal-cumple{background:#fff;border-radius:20px;width:100%;max-width:360px;padding:0;overflow:hidden;animation:popCumple .4s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popCumple{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+.mc-header{background:#3B2A1A;padding:1.4rem 1.2rem;text-align:center;}
+.mc-trofeo{font-size:3rem;margin-bottom:.4rem;}
+.mc-titulo{font-family:'Lato',sans-serif;font-size:1rem;font-weight:700;color:#FAC775;letter-spacing:.5px;}
+.mc-body{padding:1.2rem;}
+.mc-cliente{background:#FAEEDA;border:1.5px solid #EF9F27;border-radius:12px;padding:.9rem 1rem;margin-bottom:.7rem;display:flex;align-items:center;gap:.8rem;}
+.mc-cliente:last-of-type{margin-bottom:0;}
+.mc-avatar{width:36px;height:36px;border-radius:50%;background:#EF9F27;color:#3B2A1A;font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;}
+.mc-info-nombre{font-size:14px;font-weight:700;color:#3B2A1A;}
+.mc-info-sub{font-size:11px;color:#7A6050;margin-top:2px;}
+.mc-actions{display:grid;gap:.5rem;margin-top:1rem;}
+.mc-btn-wsp{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem;background:#25D366;color:#fff;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;}
+.mc-btn-cerrar{padding:.75rem;background:none;color:#7A6050;border:1px solid #E8DFC8;border-radius:10px;font-family:'Lato',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 .nav-tabs{display:grid;grid-template-columns:repeat(5,1fr);background:#2C1F0F;}
 .nav-tab{padding:10px 4px;background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#BA7517;border-bottom:3px solid transparent;border-right:1px solid #1A1208;}
 .nav-tab:nth-child(5n){border-right:none;}
@@ -492,6 +509,25 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
     </select>
   </div>
   <div id="eventos-lista"><p class="empty-msg">Sin solicitudes de eventos aún</p></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL CUMPLEAÑOS
+══════════════════════════════════════════ -->
+<div class="modal-cumple-overlay" id="modal-cumple">
+  <div class="modal-cumple">
+    <div class="mc-header">
+      <div class="mc-trofeo">🎂</div>
+      <div class="mc-titulo">¡Cumpleaños hoy!</div>
+    </div>
+    <div class="mc-body">
+      <div id="mc-clientes-lista"></div>
+      <div class="mc-actions">
+        <div id="mc-wsp-btns"></div>
+        <button class="mc-btn-cerrar" onclick="cerrarModalCumple()">Ya los saludé, cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -1520,6 +1556,12 @@ function escucharClientes(){
   }, ()=>setSyncErr());
 }
 
+let modalCumpleMostrado = false;
+
+function cerrarModalCumple(){
+  document.getElementById('modal-cumple').classList.remove('show');
+}
+
 function verificarCumpleHoy(){
   const hoy = new Date();
   const diaHoy = String(hoy.getDate()).padStart(2,'0');
@@ -1529,12 +1571,46 @@ function verificarCumpleHoy(){
     const partes = c.fecha.split('-');
     return partes[1]===mesHoy && partes[2]===diaHoy;
   });
+
+  // Alerta dentro de la pestaña Clientes (ya existía)
   const alerta = document.getElementById('cumple-alerta-hoy');
   const nombres = document.getElementById('cumple-alerta-nombres');
   if(cumplehoy.length > 0){
     alerta.style.display='block';
     nombres.innerHTML = cumplehoy.map(c=>`<strong>${c.nombre}</strong> — ${c.consume||'cliente frecuente'} 🎉`).join('<br>');
   } else { alerta.style.display='none'; }
+
+  // Modal automático — solo se muestra una vez por sesión
+  if(cumplehoy.length > 0 && !modalCumpleMostrado){
+    modalCumpleMostrado = true;
+    // Construir lista de clientes
+    const lista = document.getElementById('mc-clientes-lista');
+    lista.innerHTML = cumplehoy.map(c=>{
+      const inicial = c.nombre.charAt(0).toUpperCase();
+      return `<div class="mc-cliente">
+        <div class="mc-avatar">${inicial}</div>
+        <div>
+          <div class="mc-info-nombre">${c.nombre}</div>
+          <div class="mc-info-sub">${c.consume ? '☕ '+c.consume : 'cliente frecuente'}</div>
+        </div>
+      </div>`;
+    }).join('');
+    // Botones de WhatsApp por cliente
+    const wspBtns = document.getElementById('mc-wsp-btns');
+    const conTel = cumplehoy.filter(c=>c.telefono);
+    if(conTel.length > 0){
+      wspBtns.innerHTML = conTel.map(c=>{
+        const tel = c.telefono.replace(/\D/g,'');
+        const msg = encodeURIComponent('Hola '+c.nombre+'! 🎂 Hoy es tu cumpleaños y desde Estación Alanna Café te deseamos un día muy especial. ¡Te esperamos para celebrar juntos! ☕🎉');
+        return `<a class="mc-btn-wsp" href="https://wa.me/595${tel}?text=${msg}" target="_blank">
+          💬 Saludar a ${c.nombre.split(' ')[0]} por WhatsApp
+        </a>`;
+      }).join('');
+    } else {
+      wspBtns.innerHTML = '';
+    }
+    document.getElementById('modal-cumple').classList.add('show');
+  }
 }
 
 function diasParaCumple(fecha){
@@ -1835,6 +1911,7 @@ document.getElementById('modal-pago').addEventListener('click', function(e) {
 
 escucharMesas();
 escucharStock(); // arrancar stock al inicio para badge en topbar
+escucharClientes(); // arrancar clientes al inicio para alerta de cumpleaños
 </script>
 </body>
 </html>
