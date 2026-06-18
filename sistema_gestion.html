@@ -1942,7 +1942,8 @@ function abrirModalPago(origen) {
 
 function cerrarModalPago() {
   document.getElementById('modal-pago').classList.remove('show');
-  document.getElementById('ticket-tel').value = '';
+  // Limpiar tel con delay para que confirmarPago lo lea primero
+  setTimeout(()=>{ document.getElementById('ticket-tel').value = ''; }, 300);
   modalOrigen = null;
 }
 
@@ -1987,18 +1988,20 @@ function confirmarPago(enviarWsp) {
     transferencia: 'Transferencia'
   }[metodoActual] || metodoActual;
 
+  // Leer tel ANTES de cerrar el modal (cerrarModalPago limpia el campo)
   const telInput = document.getElementById('ticket-tel').value.trim();
   const tel = telInput ? telInput.replace(/\D/g,'') : null;
 
-  // Si eligió enviar WA pero no puso teléfono, avisar
   if(enviarWsp && !tel){
     alert('Ingresá el número de WhatsApp del cliente para enviar el ticket.');
     return;
   }
 
+  // Guardar origen antes de cerrar (cerrar resetea modalOrigen)
+  const origen = modalOrigen;
   cerrarModalPago();
 
-  if (modalOrigen === 'mesa') {
+  if (origen === 'mesa') {
     cobrarMesaConMetodo(metodoLabel, enviarWsp ? tel : null);
   } else {
     cobrarPSConMetodo(metodoLabel, enviarWsp ? tel : null);
@@ -2031,7 +2034,14 @@ function generarTicketWsp(mesa, pedido, total, metodo, hora, tel){
     `Volvé pronto a Estación Alanna ☕`;
 
   const url = `https://wa.me/595${tel}?text=${encodeURIComponent(msg)}`;
-  window.open(url, '_blank');
+  // Usar location.href para evitar bloqueo de popups en móvil
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // Versiones de cobrar que incluyen el método de pago en el registro
