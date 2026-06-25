@@ -13,7 +13,7 @@ body{font-family:'Lato',sans-serif;background:var(--crema);color:var(--texto);mi
 .header img{width:120px;height:120px;object-fit:contain;margin-bottom:4px;}
 .header-tagline{font-family:'Playfair Display',serif;font-style:italic;font-size:13px;color:var(--texto-suave);margin-top:4px;}
 nav{display:flex;background:var(--cafe);position:sticky;top:0;z-index:100;overflow-x:auto;}
-nav button{flex:1;min-width:65px;padding:12px 4px;background:none;border:none;color:#BA7517;font-family:'Lato',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+nav button{flex:1;min-width:60px;padding:12px 4px;background:none;border:none;color:#BA7517;font-family:'Lato',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
 nav button.active{color:var(--miel-claro);border-bottom:3px solid var(--miel);}
 .seccion{display:none;padding:18px 16px 40px;max-width:480px;margin:0 auto;}
 .seccion.activa{display:block;}
@@ -56,6 +56,8 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
   <button class="active" onclick="mostrar('cafes',this)">☕ Cafés</button>
   <button onclick="mostrar('cocidos',this)">🔥 Cocidos</button>
   <button onclick="mostrar('helados',this)">🍦 Helados</button>
+  <button onclick="mostrar('salados',this)">🥪 Salados</button>
+  <button onclick="mostrar('jugos',this)">🥤 Jugos</button>
   <button onclick="mostrar('dulces',this)">🍰 Dulces</button>
   <button onclick="mostrar('esencia',this)">🌿 Esencia</button>
 </nav>
@@ -125,6 +127,133 @@ footer p{font-size:10px;color:#6B4A2A;letter-spacing:1px;}
         <span class="sabor-tag">☁️ Crema del cielo</span>
         <span class="sabor-tag">🍌 Banana split</span>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- SALADOS -->
+<div class="seccion" id="salados">
+  <div class="banner">
+    <div class="banner-titulo">🥪 Para el hambre</div>
+    <div class="banner-desc">Opciones saladas y reconfortantes para acompañar tu bebida favorita.</div>
+  </div>
+  <div class="grupo-titulo">Panes y chipas</div>
+  <div class="item">
+    <div class="item-icono">🧀</div>
+    <div class="item-body">
+      <div class="item-nombre">Chipa argolla</div>
+      <div class="item-desc">Chipa tradicional paraguaya en forma de argolla. Crocante por fuera, suave por dentro.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🥞</div>
+    <div class="item-body">
+      <div class="item-nombre">Mbeju</div>
+      <div class="item-desc">El clásico torta de almidón y queso. Esponjoso, caliente y bien paraguayo.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🍞</div>
+    <div class="item-body">
+      <div class="item-nombre">Pan tostado con aderezo a elección</div>
+      <div class="item-desc">Pan tostado crujiente con tu aderezo favorito. Simple y delicioso.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="grupo-titulo">Mixtos</div>
+  <div class="item">
+    <div class="item-icono">🧀</div>
+    <div class="item-body">
+      <div class="item-nombre">Mixto de queso</div>
+      <div class="item-desc">Pan tostado con queso fundido. Clásico, simple y irresistible.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🥪</div>
+    <div class="item-body">
+      <div class="item-nombre">Mixto de jamón y queso</div>
+      <div class="item-desc">Pan tostado con jamón y queso fundido. El dúo que nunca falla.</div>
+      <div class="item-precio">₲ 6.500</div>
+    </div>
+  </div>
+  <div class="grupo-titulo">Sándwiches</div>
+  <div class="item">
+    <div class="item-icono">🥖</div>
+    <div class="item-body">
+      <div class="item-nombre">Sándwich de jamón y queso</div>
+      <div class="item-desc">Pan artesanal con jamón y queso. Fresco y bien armado.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="item estrella">
+    <div class="item-icono">🥚</div>
+    <div class="item-body">
+      <div class="item-nombre">Sándwich de jamón, queso y huevo</div>
+      <div class="item-desc">El más completo. Jamón, queso y huevo frito en pan artesanal. Ideal para el desayuno.</div>
+      <div class="item-precio">₲ 7.500</div>
+      <div class="item-badge">El más completo</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🥗</div>
+    <div class="item-body">
+      <div class="item-nombre">Sándwich de verdura</div>
+      <div class="item-desc">Pan artesanal con vegetales frescos. Liviano, fresco y sabroso.</div>
+      <div class="item-precio">₲ 6.000</div>
+    </div>
+  </div>
+</div>
+
+<!-- JUGOS -->
+<div class="seccion" id="jugos">
+  <div class="banner">
+    <div class="banner-titulo">🥤 Jugos naturales</div>
+    <div class="banner-desc">Preparados al momento con frutas frescas. Sin conservantes, sin aditivos.</div>
+  </div>
+  <div class="grupo-titulo">Licuados</div>
+  <div class="item">
+    <div class="item-icono">🍊</div>
+    <div class="item-body">
+      <div class="item-nombre">Licuado de naranja</div>
+      <div class="item-desc">Naranja fresca licuada al momento. Vitamina C pura y natural.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🍑</div>
+    <div class="item-body">
+      <div class="item-nombre">Licuado de durazno</div>
+      <div class="item-desc">Durazno maduro licuado con leche. Suave, cremoso y reconfortante.</div>
+      <div class="item-precio">₲ 8.500</div>
+    </div>
+  </div>
+  <div class="item estrella">
+    <div class="item-icono">🍓</div>
+    <div class="item-body">
+      <div class="item-nombre">Licuado de frutilla</div>
+      <div class="item-desc">Frutillas frescas licuadas con leche. Intenso, aromático y delicioso.</div>
+      <div class="item-precio">₲ 10.000</div>
+      <div class="item-badge">El favorito</div>
+    </div>
+  </div>
+  <div class="item">
+    <div class="item-icono">🍎</div>
+    <div class="item-body">
+      <div class="item-nombre">Licuado de manzana</div>
+      <div class="item-desc">Manzana fresca licuada, suave y refrescante. Perfecto a cualquier hora.</div>
+      <div class="item-precio">₲ 5.000</div>
+    </div>
+  </div>
+  <div class="grupo-titulo">Clásicos</div>
+  <div class="item">
+    <div class="item-icono">🍋</div>
+    <div class="item-body">
+      <div class="item-nombre">Limonada</div>
+      <div class="item-desc">Limón exprimido al momento con agua bien fría. Clásica y refrescante.</div>
+      <div class="item-precio">₲ 5.000</div>
     </div>
   </div>
 </div>
