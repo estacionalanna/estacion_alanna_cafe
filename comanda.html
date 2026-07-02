@@ -300,7 +300,24 @@ body{font-family:'Lato',sans-serif;background:var(--crema);color:var(--texto);mi
           <div class="dato-row"><span class="dato-lbl">CI</span><span class="dato-val">4391405 <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button></span></div>
         </div>
       </div>
-      <div class="nota-pago">💡 Realizá la transferencia por el total de tu pedido y luego confirmá. Tu pedido llegará al local en segundos.</div>
+      <div class="nota-pago">💡 Realizá la transferencia por el total de tu pedido y luego seguí los pasos abajo.</div>
+
+      <!-- PASO 1: Enviar comprobante -->
+      <div style="background:#EAF3DE;border:1.5px solid #3B6D11;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#3B6D11;margin-bottom:6px;">Paso 1 — Enviá tu comprobante</div>
+        <p style="font-size:12px;color:#2C1F0F;line-height:1.6;margin-bottom:10px;">Una vez realizada la transferencia, enviá el comprobante por WhatsApp para que podamos verificar tu pago.</p>
+        <a id="btn-comprobante" href="" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;background:#25D366;color:#fff;border-radius:10px;font-family:'Lato',sans-serif;font-size:13px;font-weight:700;text-decoration:none;">
+          💬 Enviar comprobante por WhatsApp
+        </a>
+      </div>
+
+      <!-- PASO 2: Confirmar pedido -->
+      <div style="background:#FAEEDA;border:1.5px solid #EF9F27;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#854F0B;margin-bottom:6px;">Paso 2 — Confirmá tu pedido</div>
+        <p style="font-size:12px;color:#2C1F0F;line-height:1.6;margin-bottom:10px;">Después de enviar el comprobante, tocá el botón para registrar tu pedido en el local.</p>
+      </div>
+
       <button class="btn-primary" onclick="enviarPedido()">✓ Confirmé el pago — enviar pedido</button>
       <button class="btn-secondary" onclick="cerrarDrawer()">← Seguir agregando</button>
     </div>
@@ -427,6 +444,25 @@ function renderDrawer(){
       <span class="d-sub">${fGs(v.precio * v.qty)}</span>
     </div>`).join('');
   document.getElementById('drawer-total').textContent = fGs(totalCarrito());
+  // Actualizar link de WhatsApp para comprobante
+  actualizarLinkComprobante();
+}
+
+function actualizarLinkComprobante(){
+  const total   = totalCarrito();
+  const nombre  = document.getElementById('input-nombre').value.trim() || 'Cliente';
+  const mesa    = mesaNum ? 'Mesa ' + mesaNum : 'Pedido desde casa';
+  const detalle = Object.entries(carrito).map(([n,v])=>n+(v.qty>1?' x'+v.qty:'')).join(', ');
+  const msg = encodeURIComponent(
+    '¡Hola! Realicé una transferencia para mi pedido en Estación Alanna Café.\n\n' +
+    '📍 ' + mesa + '\n' +
+    '👤 ' + nombre + '\n' +
+    '🛒 ' + detalle + '\n' +
+    '💰 Total: ' + fGs(total) + '\n\n' +
+    'Adjunto el comprobante de pago. ✅'
+  );
+  const btn = document.getElementById('btn-comprobante');
+  if(btn) btn.href = 'https://wa.me/595984033181?text=' + msg;
 }
 
 function cambiarDrawer(nombre, precio, delta){
