@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedido — Estación Alanna Café</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cafe:#3B2A1A;--cafe-oscuro:#251A0F;
+  --miel:#EF9F27;--miel-claro:#FAC775;--miel-fondo:#FAEEDA;
+  --cana:#3B6D11;--crema:#FAF6ED;--borde:#E8DFC8;
+  --texto:#2C1F0F;--suave:#7A6050;--rojo:#A32D2D;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Lato',sans-serif;background:var(--crema);color:var(--texto);min-height:100vh;padding-bottom:120px;}
+
+/* ── HEADER ── */
+.header{background:var(--cafe-oscuro);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-brand{display:flex;align-items:center;gap:10px;}
+.header-logo{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--miel);object-fit:cover;}
+.header-logo-ph{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--miel);background:var(--cafe);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.header-name{font-family:'Playfair Display',serif;font-size:13px;color:var(--miel-claro);}
+.header-mesa{font-size:11px;color:#BA7517;margin-top:1px;}
+.carrito-btn{position:relative;background:var(--miel);border:none;border-radius:20px;padding:6px 14px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;color:var(--cafe-oscuro);cursor:pointer;display:flex;align-items:center;gap:5px;}
+.carrito-count{background:var(--rojo);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+/* ── ORIGEN BADGE ── */
+.origen-bar{background:var(--cafe);padding:8px 16px;display:flex;gap:8px;align-items:center;}
+.origen-badge{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;border:1.5px solid transparent;cursor:pointer;transition:all .15s;}
+.origen-badge.sel{background:var(--miel);color:var(--cafe-oscuro);border-color:var(--miel);}
+.origen-badge.no-sel{background:none;color:#BA7517;border-color:rgba(239,159,39,.3);}
+
+/* ── NOMBRE CLIENTE (delivery) ── */
+.nombre-bar{display:none;padding:10px 16px;background:var(--miel-fondo);border-bottom:1px solid var(--borde);}
+.nombre-bar.show{display:block;}
+.nombre-bar input{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:10px;font-size:14px;font-family:'Lato',sans-serif;background:#fff;color:var(--texto);outline:none;}
+.nombre-bar input:focus{border-color:var(--miel);}
+
+/* ── NAV CATEGORÍAS ── */
+.cat-nav{display:flex;background:var(--cafe);overflow-x:auto;border-top:1px solid rgba(255,255,255,.05);}
+.cat-nav::-webkit-scrollbar{display:none;}
+.cat-btn{flex-shrink:0;padding:10px 14px;background:none;border:none;border-bottom:2.5px solid transparent;color:#BA7517;font-family:'Lato',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap;}
+.cat-btn.active{color:var(--miel-claro);border-bottom-color:var(--miel);}
+
+/* ── PRODUCTOS ── */
+.seccion{display:none;padding:14px 14px 0;}
+.seccion.activa{display:block;}
+.grupo-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--miel);margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--borde);}
+.prod-card{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.prod-card.estrella{border:2px solid var(--miel);background:#FFFDF7;}
+.prod-emoji{font-size:22px;flex-shrink:0;}
+.prod-info{flex:1;min-width:0;}
+.prod-nombre{font-family:'Playfair Display',serif;font-size:14px;color:var(--cafe);margin-bottom:2px;}
+.prod-desc{font-size:11px;color:var(--suave);line-height:1.45;margin-bottom:4px;}
+.prod-precio{font-size:13px;font-weight:700;color:var(--cana);}
+.prod-badge{display:inline-block;font-size:9px;font-weight:700;background:var(--miel-fondo);color:#854F0B;border-radius:10px;padding:2px 7px;margin-left:4px;letter-spacing:.5px;}
+.qty-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.qty-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--borde);background:var(--crema);cursor:pointer;font-size:16px;color:var(--cafe);display:flex;align-items:center;justify-content:center;font-family:'Lato',sans-serif;font-weight:700;transition:background .15s;}
+.qty-btn:active{background:var(--miel-fondo);}
+.qty-val{font-size:14px;font-weight:700;color:var(--cafe);min-width:20px;text-align:center;}
+
+/* ── SABORES BOX ── */
+.sabores-box{background:var(--borde);border-radius:8px;padding:8px 10px;margin-top:4px;}
+.sabores-lbl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--suave);margin-bottom:5px;}
+.sabores-wrap{display:flex;flex-wrap:wrap;gap:4px;}
+.sabor-tag{font-size:11px;background:#fff;border:1px solid var(--borde);border-radius:14px;padding:2px 8px;color:var(--cafe);}
+
+/* ── CARRITO DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;}
+.drawer-overlay.show{display:block;}
+.drawer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:201;max-height:85svh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.drawer.show{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(--borde);border-radius:2px;margin:10px auto 0;}
+.drawer-header{padding:12px 16px;border-bottom:1px solid var(--borde);font-size:14px;font-weight:700;color:var(--cafe);}
+.drawer-items{padding:8px 16px;}
+.d-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--borde);}
+.d-item:last-child{border-bottom:none;}
+.d-nombre{flex:1;font-size:13px;color:var(--cafe);}
+.d-sub{font-size:12px;font-weight:700;color:var(--cana);min-width:70px;text-align:right;}
+.drawer-total{display:flex;justify-content:space-between;align-items:center;background:var(--miel-fondo);border-radius:10px;padding:12px 14px;margin:8px 16px;}
+.drawer-total-lbl{font-size:13px;font-weight:700;color:#854F0B;}
+.drawer-total-val{font-size:22px;font-weight:700;color:var(--cafe);}
+
+/* ── PASO PAGO ── */
+.pago-section{display:none;padding:14px 16px;}
+.pago-section.show{display:block;}
+.paso-titulo{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--miel);margin-bottom:10px;}
+.banco-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;}
+.banco-tab{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1.5px solid var(--borde);background:var(--crema);font-size:11px;font-weight:700;color:var(--suave);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.banco-tab.active{background:var(--cafe);color:var(--miel-claro);border-color:var(--cafe);}
+.banco-panel{display:none;}
+.banco-panel.active{display:block;}
+.datos-card{background:var(--crema);border:1px solid var(--borde);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.dato-row{display:flex;align-items:center;padding:9px 12px;border-bottom:1px solid var(--borde);}
+.dato-row:last-child{border-bottom:none;}
+.dato-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--suave);width:72px;flex-shrink:0;}
+.dato-val{font-size:13px;font-weight:700;color:var(--cafe);flex:1;}
+.btn-copiar{background:none;border:1px solid var(--borde);border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;color:var(--suave);cursor:pointer;}
+.btn-copiar.copiado{background:#EAF3DE;color:var(--cana);border-color:var(--cana);}
+.nota-pago{font-size:11px;color:var(--suave);line-height:1.6;background:var(--miel-fondo);border-radius:8px;padding:8px 10px;margin-bottom:10px;}
+
+/* ── BOTONES ACCIÓN ── */
+.btn-primary{width:100%;padding:14px;background:var(--cafe);color:var(--miel-claro);border:none;border-radius:12px;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;}
+.btn-primary:active{opacity:.85;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{width:100%;padding:12px;background:none;color:var(--suave);border:1px solid var(--borde);border-radius:12px;font-family:'Lato',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;}
+
+/* ── BARRA FLOTANTE CARRITO ── */
+.barra-carrito{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:#fff;border-top:1px solid var(--borde);z-index:150;display:none;}
+.barra-carrito.show{display:block;}
+.barra-inner{display:flex;align-items:center;gap:10px;}
+.barra-resumen{flex:1;}
+.barra-cant{font-size:11px;color:var(--suave);}
+.barra-total{font-size:18px;font-weight:700;color:var(--cafe);}
+.barra-btn{padding:12px 20px;background:var(--miel);color:var(--cafe-oscuro);border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* ── SUCCESS ── */
+.success-screen{display:none;padding:2.5rem 1.4rem;text-align:center;}
+.success-screen.show{display:block;}
+.s-icon{font-size:4rem;margin-bottom:1rem;}
+.s-titulo{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--cafe);margin-bottom:.6rem;}
+.s-desc{font-size:.9rem;color:var(--suave);line-height:1.7;margin-bottom:1.4rem;}
+.s-num{background:var(--cafe);border-radius:12px;padding:1rem;margin-bottom:1rem;}
+.s-num-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#BA7517;}
+.s-num-val{font-size:1.8rem;font-weight:700;color:var(--miel-claro);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%) translateY(120%);background:var(--cafe);color:var(--miel-claro);padding:.7rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:700;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;border:1px solid var(--miel);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo-ph">☕</div>
+    <div>
+      <div class="header-name">Estación Alanna Café</div>
+      <div class="header-mesa" id="header-mesa">Arroyos y Esteros</div>
+    </div>
+  </div>
+  <button class="carrito-btn" onclick="abrirDrawer()">
+    🛒 <span id="carrito-count-btn">0</span> · <span id="carrito-total-btn">₲ 0</span>
+  </button>
+</header>
+
+<!-- ORIGEN -->
+<div class="origen-bar">
+  <button class="origen-badge sel" id="origen-mesa" onclick="setOrigen('mesa')">🪑 Estoy en el local</button>
+  <button class="origen-badge no-sel" id="origen-casa" onclick="setOrigen('casa')">🏠 Pido desde casa</button>
+</div>
+
+<!-- NOMBRE (solo delivery) -->
+<div class="nombre-bar" id="nombre-bar">
+  <input id="input-nombre" type="text" placeholder="Tu nombre para el pedido" autocomplete="name">
+</div>
+
+<!-- CATEGORÍAS NAV -->
+<nav class="cat-nav">
+  <button class="cat-btn active" onclick="mostrarCat('cafes',this)">☕ Cafés</button>
+  <button class="cat-btn" onclick="mostrarCat('cocidos',this)">🔥 Cocidos</button>
+  <button class="cat-btn" onclick="mostrarCat('helados',this)">🍦 Helados</button>
+  <button class="cat-btn" onclick="mostrarCat('salados',this)">🥪 Salados</button>
+  <button class="cat-btn" onclick="mostrarCat('jugos',this)">🥤 Jugos</button>
+  <button class="cat-btn" onclick="mostrarCat('dulces',this)">🍰 Dulces</button>
+</nav>
+
+<!-- ══ CAFÉS ══ -->
+<div class="seccion activa" id="cat-cafes">
+  <div class="grupo-lbl">Los puros</div>
+  <div class="prod-card" data-n="Expreso" data-p="8000"><div class="prod-emoji">⚡</div><div class="prod-info"><div class="prod-nombre">Expreso</div><div class="prod-desc">La esencia pura del café. Corto, intenso, con crema avellana perfecta.</div><div class="prod-precio">₲ 8.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Expreso',8000,-1)">−</button><span class="qty-val" id="qty-Expreso">0</span><button class="qty-btn" onclick="cambiar('Expreso',8000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Americano" data-p="8000"><div class="prod-emoji">〰️</div><div class="prod-info"><div class="prod-nombre">Americano</div><div class="prod-desc">Expreso suavizado con agua caliente. Para disfrutar con calma.</div><div class="prod-precio">₲ 8.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Americano',8000,-1)">−</button><span class="qty-val" id="qty-Americano">0</span><button class="qty-btn" onclick="cambiar('Americano',8000,1)">+</button></div></div>
+  <div class="grupo-lbl">Los suaves</div>
+  <div class="prod-card" data-n="Café cortado" data-p="10000"><div class="prod-emoji">💧</div><div class="prod-info"><div class="prod-nombre">Café cortado</div><div class="prod-desc">Expreso con toque de leche vaporizada y espuma cremosa.</div><div class="prod-precio">₲ 10.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Café cortado',10000,-1)">−</button><span class="qty-val" id="qty-Café cortado">0</span><button class="qty-btn" onclick="cambiar('Café cortado',10000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Café con leche" data-p="7000"><div class="prod-emoji">☕</div><div class="prod-info"><div class="prod-nombre">Café con leche</div><div class="prod-desc">El clásico infaltable. Expreso con leche vaporizada sedosa.</div><div class="prod-precio">₲ 7.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Café con leche',7000,-1)">−</button><span class="qty-val" id="qty-Café con leche">0</span><button class="qty-btn" onclick="cambiar('Café con leche',7000,1)">+</button></div></div>
+  <div class="grupo-lbl">Especiales</div>
+  <div class="prod-card" data-n="Capuchino" data-p="12000"><div class="prod-emoji">☁️</div><div class="prod-info"><div class="prod-nombre">Capuchino</div><div class="prod-desc">Expreso con leche texturizada y espuma densa con cacao o canela.</div><div class="prod-precio">₲ 12.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Capuchino',12000,-1)">−</button><span class="qty-val" id="qty-Capuchino">0</span><button class="qty-btn" onclick="cambiar('Capuchino',12000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Mocaccino" data-p="12000"><div class="prod-emoji">🍫</div><div class="prod-info"><div class="prod-nombre">Mocaccino</div><div class="prod-desc">Chocolate fundido con expreso y leche cremosa.</div><div class="prod-precio">₲ 12.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Mocaccino',12000,-1)">−</button><span class="qty-val" id="qty-Mocaccino">0</span><button class="qty-btn" onclick="cambiar('Mocaccino',12000,1)">+</button></div></div>
+  <div class="grupo-lbl">⭐ Especialidad de la casa</div>
+  <div class="prod-card estrella" data-n="Estación Arroyos ★" data-p="5000"><div class="prod-emoji">🌟</div><div class="prod-info"><div class="prod-nombre">Estación Arroyos <span class="prod-badge">🎁 Precio especial</span></div><div class="prod-desc">Café con leche con miel de caña pura local. El sabor de nuestra tierra.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Estación Arroyos ★',5000,-1)">−</button><span class="qty-val" id="qty-Estación Arroyos ★">0</span><button class="qty-btn" onclick="cambiar('Estación Arroyos ★',5000,1)">+</button></div></div>
+</div>
+
+<!-- ══ COCIDOS ══ -->
+<div class="seccion" id="cat-cocidos">
+  <div class="grupo-lbl">Cocidos clásicos</div>
+  <div class="prod-card" data-n="Cocido negro" data-p="5000"><div class="prod-emoji">🔥</div><div class="prod-info"><div class="prod-nombre">Cocido negro</div><div class="prod-desc">Intenso, ahumado y bien caliente. El aroma del campo paraguayo.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Cocido negro',5000,-1)">−</button><span class="qty-val" id="qty-Cocido negro">0</span><button class="qty-btn" onclick="cambiar('Cocido negro',5000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Cocido con leche" data-p="6500"><div class="prod-emoji">🥛</div><div class="prod-info"><div class="prod-nombre">Cocido con leche</div><div class="prod-desc">Cocido quemado con leche vaporizada. Suave y reconfortante.</div><div class="prod-precio">₲ 6.500</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Cocido con leche',6500,-1)">−</button><span class="qty-val" id="qty-Cocido con leche">0</span><button class="qty-btn" onclick="cambiar('Cocido con leche',6500,1)">+</button></div></div>
+  <div class="grupo-lbl">Texturas tradicionales</div>
+  <div class="prod-card" data-n="Cocido maní ku'i" data-p="7500"><div class="prod-emoji">🥜</div><div class="prod-info"><div class="prod-nombre">Cocido maní ku'i</div><div class="prod-desc">Cocido negro con maní tostado y molido artesanalmente.</div><div class="prod-precio">₲ 7.500</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Cocido maní ku\'i',7500,-1)">−</button><span class="qty-val" id="qty-Cocido maní ku'i">0</span><button class="qty-btn" onclick="cambiar('Cocido maní ku\'i',7500,1)">+</button></div></div>
+  <div class="grupo-lbl">⭐ Especialidad de la casa</div>
+  <div class="prod-card estrella" data-n="Estación Esteros ★" data-p="5000"><div class="prod-emoji">🌟</div><div class="prod-info"><div class="prod-nombre">Estación Esteros <span class="prod-badge">🎁 Precio especial</span></div><div class="prod-desc">Cocido con leche y miel de caña coronado con hilos de miel sobre espuma densa.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Estación Esteros ★',5000,-1)">−</button><span class="qty-val" id="qty-Estación Esteros ★">0</span><button class="qty-btn" onclick="cambiar('Estación Esteros ★',5000,1)">+</button></div></div>
+</div>
+
+<!-- ══ HELADOS ══ -->
+<div class="seccion" id="cat-helados">
+  <div class="grupo-lbl">En cucurucho</div>
+  <div class="prod-card" data-n="Helado 1 bocha" data-p="3000"><div class="prod-emoji">🍦</div><div class="prod-info"><div class="prod-nombre">Una bocha</div><div class="prod-precio">₲ 3.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Helado 1 bocha',3000,-1)">−</button><span class="qty-val" id="qty-Helado 1 bocha">0</span><button class="qty-btn" onclick="cambiar('Helado 1 bocha',3000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Helado 2 bochas" data-p="5000"><div class="prod-emoji">🍦</div><div class="prod-info"><div class="prod-nombre">Dos bochas</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Helado 2 bochas',5000,-1)">−</button><span class="qty-val" id="qty-Helado 2 bochas">0</span><button class="qty-btn" onclick="cambiar('Helado 2 bochas',5000,1)">+</button></div></div>
+  <div class="grupo-lbl">En vaso</div>
+  <div class="prod-card" data-n="Helado vaso ¼ kg" data-p="10000"><div class="prod-emoji">🥤</div><div class="prod-info"><div class="prod-nombre">Vaso ¼ kg</div><div class="prod-precio">₲ 10.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Helado vaso ¼ kg',10000,-1)">−</button><span class="qty-val" id="qty-Helado vaso ¼ kg">0</span><button class="qty-btn" onclick="cambiar('Helado vaso ¼ kg',10000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Helado por kilo" data-p="30000"><div class="prod-emoji">🥤</div><div class="prod-info"><div class="prod-nombre">Por kilo</div><div class="prod-precio">₲ 30.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Helado por kilo',30000,-1)">−</button><span class="qty-val" id="qty-Helado por kilo">0</span><button class="qty-btn" onclick="cambiar('Helado por kilo',30000,1)">+</button></div></div>
+  <div class="grupo-lbl">Paletas</div>
+  <div class="prod-card" data-n="Chupachus" data-p="1000"><div class="prod-emoji">🍭</div><div class="prod-info"><div class="prod-nombre">Chupachus</div><div class="prod-precio">₲ 1.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Chupachus',1000,-1)">−</button><span class="qty-val" id="qty-Chupachus">0</span><button class="qty-btn" onclick="cambiar('Chupachus',1000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Paleta frutal" data-p="2000"><div class="prod-emoji">🍡</div><div class="prod-info"><div class="prod-nombre">Paleta frutal</div><div class="prod-precio">₲ 2.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Paleta frutal',2000,-1)">−</button><span class="qty-val" id="qty-Paleta frutal">0</span><button class="qty-btn" onclick="cambiar('Paleta frutal',2000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Paleta cremosa" data-p="3000"><div class="prod-emoji">🍡</div><div class="prod-info"><div class="prod-nombre">Paleta cremosa</div><div class="prod-precio">₲ 3.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Paleta cremosa',3000,-1)">−</button><span class="qty-val" id="qty-Paleta cremosa">0</span><button class="qty-btn" onclick="cambiar('Paleta cremosa',3000,1)">+</button></div></div>
+  <div class="grupo-lbl">Sabores disponibles</div>
+  <div class="prod-card" style="display:block;cursor:default;">
+    <div class="sabores-box"><div class="sabores-lbl">Elegí tu sabor al retirar</div><div class="sabores-wrap"><span class="sabor-tag">🍫 Chocolate</span><span class="sabor-tag">🍦 Vainilla</span><span class="sabor-tag">🍓 Frutilla</span><span class="sabor-tag">🍮 Crema americana</span><span class="sabor-tag">🥛 Dulce de leche</span><span class="sabor-tag">🌿 Menta</span><span class="sabor-tag">❄️ Granizado</span><span class="sabor-tag">☁️ Crema del cielo</span><span class="sabor-tag">🍌 Banana split</span></div></div>
+  </div>
+</div>
+
+<!-- ══ SALADOS ══ -->
+<div class="seccion" id="cat-salados">
+  <div class="grupo-lbl">Panes y chipas</div>
+  <div class="prod-card" data-n="Chipa argolla" data-p="5000"><div class="prod-emoji">🧀</div><div class="prod-info"><div class="prod-nombre">Chipa argolla</div><div class="prod-desc">Chipa tradicional paraguaya. Crocante por fuera, suave por dentro.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Chipa argolla',5000,-1)">−</button><span class="qty-val" id="qty-Chipa argolla">0</span><button class="qty-btn" onclick="cambiar('Chipa argolla',5000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Mbeju" data-p="5000"><div class="prod-emoji">🥞</div><div class="prod-info"><div class="prod-nombre">Mbeju</div><div class="prod-desc">Torta de almidón y queso. Esponjoso, caliente y bien paraguayo.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Mbeju',5000,-1)">−</button><span class="qty-val" id="qty-Mbeju">0</span><button class="qty-btn" onclick="cambiar('Mbeju',5000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Pan tostado con aderezo" data-p="5000"><div class="prod-emoji">🍞</div><div class="prod-info"><div class="prod-nombre">Pan tostado con aderezo</div><div class="prod-desc">Pan tostado crujiente con aderezo a elección.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Pan tostado con aderezo',5000,-1)">−</button><span class="qty-val" id="qty-Pan tostado con aderezo">0</span><button class="qty-btn" onclick="cambiar('Pan tostado con aderezo',5000,1)">+</button></div></div>
+  <div class="grupo-lbl">Mixtos</div>
+  <div class="prod-card" data-n="Mixto de queso" data-p="5000"><div class="prod-emoji">🧀</div><div class="prod-info"><div class="prod-nombre">Mixto de queso</div><div class="prod-desc">Pan tostado con queso fundido.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Mixto de queso',5000,-1)">−</button><span class="qty-val" id="qty-Mixto de queso">0</span><button class="qty-btn" onclick="cambiar('Mixto de queso',5000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Mixto de jamón y queso" data-p="6500"><div class="prod-emoji">🥪</div><div class="prod-info"><div class="prod-nombre">Mixto de jamón y queso</div><div class="prod-desc">Pan tostado con jamón y queso fundido.</div><div class="prod-precio">₲ 6.500</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Mixto de jamón y queso',6500,-1)">−</button><span class="qty-val" id="qty-Mixto de jamón y queso">0</span><button class="qty-btn" onclick="cambiar('Mixto de jamón y queso',6500,1)">+</button></div></div>
+  <div class="grupo-lbl">Sándwiches</div>
+  <div class="prod-card" data-n="Sándwich de jamón y queso" data-p="5000"><div class="prod-emoji">🥖</div><div class="prod-info"><div class="prod-nombre">Sándwich de jamón y queso</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Sándwich de jamón y queso',5000,-1)">−</button><span class="qty-val" id="qty-Sándwich de jamón y queso">0</span><button class="qty-btn" onclick="cambiar('Sándwich de jamón y queso',5000,1)">+</button></div></div>
+  <div class="prod-card estrella" data-n="Sándwich jamón, queso y huevo" data-p="7500"><div class="prod-emoji">🥚</div><div class="prod-info"><div class="prod-nombre">Sándwich jamón, queso y huevo <span class="prod-badge">El más completo</span></div><div class="prod-precio">₲ 7.500</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Sándwich jamón, queso y huevo',7500,-1)">−</button><span class="qty-val" id="qty-Sándwich jamón, queso y huevo">0</span><button class="qty-btn" onclick="cambiar('Sándwich jamón, queso y huevo',7500,1)">+</button></div></div>
+  <div class="prod-card" data-n="Sándwich de verdura" data-p="6000"><div class="prod-emoji">🥗</div><div class="prod-info"><div class="prod-nombre">Sándwich de verdura</div><div class="prod-precio">₲ 6.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Sándwich de verdura',6000,-1)">−</button><span class="qty-val" id="qty-Sándwich de verdura">0</span><button class="qty-btn" onclick="cambiar('Sándwich de verdura',6000,1)">+</button></div></div>
+</div>
+
+<!-- ══ JUGOS ══ -->
+<div class="seccion" id="cat-jugos">
+  <div class="grupo-lbl">Licuados</div>
+  <div class="prod-card" data-n="Licuado de naranja" data-p="5000"><div class="prod-emoji">🍊</div><div class="prod-info"><div class="prod-nombre">Licuado de naranja</div><div class="prod-desc">Naranja fresca al momento. Vitamina C natural.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Licuado de naranja',5000,-1)">−</button><span class="qty-val" id="qty-Licuado de naranja">0</span><button class="qty-btn" onclick="cambiar('Licuado de naranja',5000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Licuado de durazno" data-p="8500"><div class="prod-emoji">🍑</div><div class="prod-info"><div class="prod-nombre">Licuado de durazno</div><div class="prod-desc">Durazno maduro con leche. Suave y cremoso.</div><div class="prod-precio">₲ 8.500</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Licuado de durazno',8500,-1)">−</button><span class="qty-val" id="qty-Licuado de durazno">0</span><button class="qty-btn" onclick="cambiar('Licuado de durazno',8500,1)">+</button></div></div>
+  <div class="prod-card estrella" data-n="Licuado de frutilla" data-p="10000"><div class="prod-emoji">🍓</div><div class="prod-info"><div class="prod-nombre">Licuado de frutilla <span class="prod-badge">El favorito</span></div><div class="prod-desc">Frutillas frescas con leche. Intenso y aromático.</div><div class="prod-precio">₲ 10.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Licuado de frutilla',10000,-1)">−</button><span class="qty-val" id="qty-Licuado de frutilla">0</span><button class="qty-btn" onclick="cambiar('Licuado de frutilla',10000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Licuado de manzana" data-p="5000"><div class="prod-emoji">🍎</div><div class="prod-info"><div class="prod-nombre">Licuado de manzana</div><div class="prod-desc">Manzana fresca. Suave y refrescante.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Licuado de manzana',5000,-1)">−</button><span class="qty-val" id="qty-Licuado de manzana">0</span><button class="qty-btn" onclick="cambiar('Licuado de manzana',5000,1)">+</button></div></div>
+  <div class="grupo-lbl">Clásicos</div>
+  <div class="prod-card" data-n="Limonada" data-p="5000"><div class="prod-emoji">🍋</div><div class="prod-info"><div class="prod-nombre">Limonada</div><div class="prod-desc">Limón exprimido al momento con agua bien fría.</div><div class="prod-precio">₲ 5.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Limonada',5000,-1)">−</button><span class="qty-val" id="qty-Limonada">0</span><button class="qty-btn" onclick="cambiar('Limonada',5000,1)">+</button></div></div>
+</div>
+
+<!-- ══ DULCES ══ -->
+<div class="seccion" id="cat-dulces">
+  <div class="grupo-lbl">Artesanales</div>
+  <div class="prod-card" data-n="Medialunas" data-p="8000"><div class="prod-emoji">🥐</div><div class="prod-info"><div class="prod-nombre">Medialunas</div><div class="prod-precio">₲ 8.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Medialunas',8000,-1)">−</button><span class="qty-val" id="qty-Medialunas">0</span><button class="qty-btn" onclick="cambiar('Medialunas',8000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Bollos" data-p="6000"><div class="prod-emoji">🍞</div><div class="prod-info"><div class="prod-nombre">Bollos</div><div class="prod-precio">₲ 6.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Bollos',6000,-1)">−</button><span class="qty-val" id="qty-Bollos">0</span><button class="qty-btn" onclick="cambiar('Bollos',6000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Pastafrola" data-p="8000"><div class="prod-emoji">🥧</div><div class="prod-info"><div class="prod-nombre">Pastafrola</div><div class="prod-precio">₲ 8.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Pastafrola',8000,-1)">−</button><span class="qty-val" id="qty-Pastafrola">0</span><button class="qty-btn" onclick="cambiar('Pastafrola',8000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Pionono" data-p="6000"><div class="prod-emoji">🍰</div><div class="prod-info"><div class="prod-nombre">Pionono</div><div class="prod-precio">₲ 6.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Pionono',6000,-1)">−</button><span class="qty-val" id="qty-Pionono">0</span><button class="qty-btn" onclick="cambiar('Pionono',6000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Marmolada" data-p="8000"><div class="prod-emoji">🍯</div><div class="prod-info"><div class="prod-nombre">Marmolada</div><div class="prod-precio">₲ 8.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Marmolada',8000,-1)">−</button><span class="qty-val" id="qty-Marmolada">0</span><button class="qty-btn" onclick="cambiar('Marmolada',8000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Alfajor" data-p="8000"><div class="prod-emoji">🍪</div><div class="prod-info"><div class="prod-nombre">Alfajor</div><div class="prod-precio">₲ 8.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Alfajor',8000,-1)">−</button><span class="qty-val" id="qty-Alfajor">0</span><button class="qty-btn" onclick="cambiar('Alfajor',8000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Brownie" data-p="11000"><div class="prod-emoji">🍫</div><div class="prod-info"><div class="prod-nombre">Brownie</div><div class="prod-precio">₲ 11.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Brownie',11000,-1)">−</button><span class="qty-val" id="qty-Brownie">0</span><button class="qty-btn" onclick="cambiar('Brownie',11000,1)">+</button></div></div>
+  <div class="prod-card" data-n="Cookies" data-p="11000"><div class="prod-emoji">🍪</div><div class="prod-info"><div class="prod-nombre">Cookies</div><div class="prod-precio">₲ 11.000</div></div><div class="qty-ctrl"><button class="qty-btn" onclick="cambiar('Cookies',11000,-1)">−</button><span class="qty-val" id="qty-Cookies">0</span><button class="qty-btn" onclick="cambiar('Cookies',11000,1)">+</button></div></div>
+</div>
+
+<!-- ══ DRAWER CARRITO ══ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="cerrarDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">🛒 Tu pedido</div>
+  <div class="drawer-items" id="drawer-items"></div>
+  <div class="drawer-total">
+    <span class="drawer-total-lbl">Total</span>
+    <span class="drawer-total-val" id="drawer-total">₲ 0</span>
+  </div>
+  <!-- PAGO -->
+  <div class="pago-section show" id="pago-section" style="padding-top:0;">
+    <div style="padding:12px 16px 0;">
+      <div class="paso-titulo">Método de pago</div>
+      <div class="banco-tabs">
+        <button class="banco-tab active" onclick="selBanco('ueno',this)">🏦 Ueno Bank</button>
+        <button class="banco-tab" onclick="selBanco('tufinan',this)">🏦 Tu Financiera</button>
+        <button class="banco-tab" onclick="selBanco('familiar',this)">🏦 Bco. Familiar</button>
+      </div>
+      <!-- Ueno -->
+      <div class="banco-panel active" id="bp-ueno">
+        <div class="datos-card">
+          <div class="dato-row"><span class="dato-lbl">Banco</span><span class="dato-val">Ueno Bank</span></div>
+          <div class="dato-row"><span class="dato-lbl">Tipo</span><span class="dato-val">Cuenta Corriente</span></div>
+          <div class="dato-row"><span class="dato-lbl">Número</span><span class="dato-val">614165672 <button class="btn-copiar" onclick="copiar(this,'614165672')">copiar</button></span></div>
+          <div class="dato-row"><span class="dato-lbl">Titular</span><span class="dato-val">Jose Gabriel Martinez</span></div>
+          <div class="dato-row"><span class="dato-lbl">CI</span><span class="dato-val">4391405 <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button></span></div>
+        </div>
+      </div>
+      <!-- Tu Financiera -->
+      <div class="banco-panel" id="bp-tufinan">
+        <div class="datos-card">
+          <div class="dato-row"><span class="dato-lbl">Banco</span><span class="dato-val">Tu Financiera</span></div>
+          <div class="dato-row"><span class="dato-lbl">Tipo</span><span class="dato-val">Caja de Ahorro</span></div>
+          <div class="dato-row"><span class="dato-lbl">Número</span><span class="dato-val">42487527 <button class="btn-copiar" onclick="copiar(this,'42487527')">copiar</button></span></div>
+          <div class="dato-row"><span class="dato-lbl">Titular</span><span class="dato-val">Jose Gabriel Martinez</span></div>
+          <div class="dato-row"><span class="dato-lbl">CI</span><span class="dato-val">4391405 <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button></span></div>
+        </div>
+      </div>
+      <!-- Banco Familiar -->
+      <div class="banco-panel" id="bp-familiar">
+        <div class="datos-card">
+          <div class="dato-row"><span class="dato-lbl">Banco</span><span class="dato-val">Banco Familiar</span></div>
+          <div class="dato-row"><span class="dato-lbl">Tipo</span><span class="dato-val">Caja de Ahorro</span></div>
+          <div class="dato-row"><span class="dato-lbl">Número</span><span class="dato-val">14-3679716 <button class="btn-copiar" onclick="copiar(this,'14-3679716')">copiar</button></span></div>
+          <div class="dato-row"><span class="dato-lbl">Titular</span><span class="dato-val">Jose Gabriel Martinez</span></div>
+          <div class="dato-row"><span class="dato-lbl">CI</span><span class="dato-val">4391405 <button class="btn-copiar" onclick="copiar(this,'4391405')">copiar</button></span></div>
+        </div>
+      </div>
+      <div class="nota-pago">💡 Realizá la transferencia por el total de tu pedido y luego confirmá. Tu pedido llegará al local en segundos.</div>
+      <button class="btn-primary" onclick="enviarPedido()">✓ Confirmé el pago — enviar pedido</button>
+      <button class="btn-secondary" onclick="cerrarDrawer()">← Seguir agregando</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="success-screen">
+  <div class="s-icon">🎉</div>
+  <div class="s-titulo">¡Pedido enviado!</div>
+  <p class="s-desc">Tu pedido llegó al local. <br>En unos minutos estará listo para vos.</p>
+  <div class="s-num">
+    <div class="s-num-lbl">Número de pedido</div>
+    <div class="s-num-val" id="s-num-val">#001</div>
+  </div>
+  <p class="s-desc" style="font-size:.82rem;">Mostrá este número cuando retires tu pedido 👆</p>
+</div>
+
+<!-- BARRA FLOTANTE -->
+<div class="barra-carrito" id="barra-carrito">
+  <div class="barra-inner">
+    <div class="barra-resumen">
+      <div class="barra-cant" id="barra-cant">0 productos</div>
+      <div class="barra-total" id="barra-total">₲ 0</div>
+    </div>
+    <button class="barra-btn" onclick="abrirDrawer()">Ver pedido →</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:            'AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8',
+  authDomain:        'estacion-alanna.firebaseapp.com',
+  projectId:         'estacion-alanna',
+  storageBucket:     'estacion-alanna.firebasestorage.app',
+  messagingSenderId: '776786709550',
+  appId:             '1:776786709550:web:b5b77a46abdbfb363423bf'
+});
+const db = firebase.firestore();
+
+// ── LEER PARÁMETROS DE URL ──
+const params  = new URLSearchParams(window.location.search);
+const mesaNum = params.get('mesa'); // ?mesa=1 si viene del QR
+let origen    = mesaNum ? 'mesa' : 'casa';
+
+// Actualizar header y UI según origen
+function initOrigen(){
+  if(mesaNum){
+    document.getElementById('header-mesa').textContent = '🪑 Mesa ' + mesaNum;
+    document.getElementById('origen-mesa').textContent = '🪑 Mesa ' + mesaNum;
+    // Ocultar selector si viene de QR de mesa
+    document.querySelector('.origen-bar').style.display = 'none';
+  }
+  setOrigen(origen);
+}
+
+function setOrigen(o){
+  origen = o;
+  document.getElementById('origen-mesa').classList.toggle('sel',   o === 'mesa');
+  document.getElementById('origen-mesa').classList.toggle('no-sel', o !== 'mesa');
+  document.getElementById('origen-casa').classList.toggle('sel',   o === 'casa');
+  document.getElementById('origen-casa').classList.toggle('no-sel', o !== 'casa');
+  const nb = document.getElementById('nombre-bar');
+  nb.classList.toggle('show', o === 'casa');
+}
+
+// ── CARRITO ──
+const carrito = {}; // { nombre: { precio, qty } }
+
+function fGs(n){ return '₲ ' + Math.round(n).toLocaleString('es-PY'); }
+
+function totalCarrito(){
+  return Object.values(carrito).reduce((s,v)=>s + v.precio * v.qty, 0);
+}
+function cantCarrito(){
+  return Object.values(carrito).reduce((s,v)=>s + v.qty, 0);
+}
+
+function cambiar(nombre, precio, delta){
+  if(!carrito[nombre]) carrito[nombre] = { precio, qty: 0 };
+  carrito[nombre].qty = Math.max(0, carrito[nombre].qty + delta);
+  if(carrito[nombre].qty === 0) delete carrito[nombre];
+  const el = document.getElementById('qty-' + nombre);
+  if(el) el.textContent = carrito[nombre] ? carrito[nombre].qty : 0;
+  actualizarBarra();
+}
+
+function actualizarBarra(){
+  const cant  = cantCarrito();
+  const total = totalCarrito();
+  document.getElementById('barra-cant').textContent  = cant + ' producto' + (cant !== 1 ? 's' : '');
+  document.getElementById('barra-total').textContent = fGs(total);
+  document.getElementById('carrito-count-btn').textContent = cant;
+  document.getElementById('carrito-total-btn').textContent = fGs(total);
+  document.getElementById('barra-carrito').classList.toggle('show', cant > 0);
+}
+
+// ── DRAWER ──
+function abrirDrawer(){
+  if(cantCarrito() === 0){ toast('Agregá productos primero'); return; }
+  renderDrawer();
+  document.getElementById('drawer-overlay').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+}
+function cerrarDrawer(){
+  document.getElementById('drawer-overlay').classList.remove('show');
+  document.getElementById('drawer').classList.remove('show');
+}
+
+function renderDrawer(){
+  const items = Object.entries(carrito);
+  document.getElementById('drawer-items').innerHTML = items.map(([n,v])=>`
+    <div class="d-item">
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="cambiarDrawer('${n}',${v.precio},-1)">−</button>
+        <span class="qty-val">${v.qty}</span>
+        <button class="qty-btn" onclick="cambiarDrawer('${n}',${v.precio},1)">+</button>
+      </div>
+      <span class="d-nombre">${n}</span>
+      <span class="d-sub">${fGs(v.precio * v.qty)}</span>
+    </div>`).join('');
+  document.getElementById('drawer-total').textContent = fGs(totalCarrito());
+}
+
+function cambiarDrawer(nombre, precio, delta){
+  cambiar(nombre, precio, delta);
+  if(cantCarrito() === 0){ cerrarDrawer(); return; }
+  renderDrawer();
+}
+
+// ── BANCOS ──
+function selBanco(key, btn){
+  document.querySelectorAll('.banco-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['ueno','tufinan','familiar'].forEach(k=>{
+    document.getElementById('bp-'+k).classList.toggle('active', k===key);
+  });
+}
+
+function copiar(btn, texto){
+  navigator.clipboard.writeText(texto).then(()=>{
+    btn.textContent='✓ copiado'; btn.classList.add('copiado');
+    setTimeout(()=>{ btn.textContent='copiar'; btn.classList.remove('copiado'); }, 2000);
+  });
+}
+
+// ── ENVIAR PEDIDO ──
+async function enviarPedido(){
+  if(cantCarrito() === 0){ toast('Tu carrito está vacío'); return; }
+
+  const nombre = document.getElementById('input-nombre').value.trim();
+  if(origen === 'casa' && !nombre){
+    toast('Ingresá tu nombre para el pedido'); return;
+  }
+
+  const btn = document.querySelector('.btn-primary');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    // Número de pedido
+    const snap  = await db.collection('comandas').get();
+    const numero = snap.size + 1;
+
+    const productos = Object.entries(carrito).map(([n,v])=>({
+      nombre:n, precio:v.precio, qty:v.qty, subtotal:v.precio*v.qty
+    }));
+
+    const pedido = {
+      numero,
+      origen,
+      mesa:    origen === 'mesa' ? 'Mesa ' + mesaNum : null,
+      cliente: nombre || 'Cliente',
+      productos,
+      total:   totalCarrito(),
+      estado:  'pendiente',
+      hora:    new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'}),
+      fecha:   new Date().toLocaleDateString('es-PY'),
+      creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    await db.collection('comandas').add(pedido);
+
+    // Mostrar success
+    cerrarDrawer();
+    document.getElementById('s-num-val').textContent = '#' + String(numero).padStart(3,'0');
+    document.querySelectorAll('.seccion,.cat-nav,.origen-bar,.nombre-bar,.barra-carrito')
+      .forEach(el=>el.style.display='none');
+    document.getElementById('success-screen').classList.add('show');
+
+  } catch(e){
+    console.error(e);
+    toast('Error al enviar. Intentá de nuevo.');
+    btn.disabled = false;
+    btn.textContent = '✓ Confirmé el pago — enviar pedido';
+  }
+}
+
+// ── NAV ──
+function mostrarCat(id, btn){
+  document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('activa'));
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('cat-'+id).classList.add('activa');
+  btn.classList.add('active');
+}
+
+// ── TOAST ──
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+initOrigen();
+</script>
+</body>
+</html>
