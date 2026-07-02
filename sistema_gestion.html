@@ -267,6 +267,32 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 .btn-confirmar-pago{width:calc(100% - 32px);margin:14px 16px 0;padding:14px;background:var(--cana);color:#EAF3DE;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-confirmar-pago:disabled{opacity:.4;cursor:not-allowed;}
 .metodo-badge-sel{display:inline-block;background:#EAF3DE;color:#3B6D11;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:6px;}
+/* ── COMANDAS ── */
+.comanda-card{background:#fff;border:1px solid #E8DFC8;border-radius:12px;padding:14px;margin-bottom:10px;}
+.comanda-card.pendiente{border-left:4px solid #EF9F27;}
+.comanda-card.preparando{border-left:4px solid #1565C0;}
+.comanda-card.listo{border-left:4px solid #3B6D11;}
+.comanda-card.entregado{border-left:4px solid #ccc;opacity:.7;}
+.com-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.com-num{font-size:16px;font-weight:700;color:#3B2A1A;}
+.com-origen{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;}
+.com-origen.mesa{background:#FAEEDA;color:#854F0B;}
+.com-origen.casa{background:#E8F4FD;color:#1565C0;}
+.com-estado{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:10px;}
+.com-estado.pendiente{background:#FAEEDA;color:#854F0B;}
+.com-estado.preparando{background:#E8F4FD;color:#1565C0;}
+.com-estado.listo{background:#EAF3DE;color:#3B6D11;}
+.com-estado.entregado{background:#F0E8D4;color:#7A6050;}
+.com-info{font-size:12px;color:#7A6050;margin-bottom:8px;line-height:1.6;}
+.com-productos{background:#FAF6ED;border-radius:8px;padding:8px 10px;margin-bottom:10px;}
+.com-prod-row{display:flex;justify-content:space-between;font-size:12px;color:#3B2A1A;padding:3px 0;}
+.com-total{font-size:14px;font-weight:700;color:#3B6D11;text-align:right;margin-top:4px;}
+.com-acciones{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-com{padding:7px 12px;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;}
+.btn-com-prep{background:#1565C0;color:#fff;}
+.btn-com-listo{background:#3B6D11;color:#EAF3DE;}
+.btn-com-entregar{background:#3B2A1A;color:#FAC775;}
+.btn-com-cancelar{background:none;color:#A32D2D;border:1px solid #F7C1C1;}
 #ticket-tel:focus{border-color:var(--miel);background:#fff;}
 </style>
 </head>
@@ -293,6 +319,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-torneo" onclick="showVista('torneo')">🏆 Torneo</button>
   <button class="nav-tab" id="tab-reservas" onclick="showVista('reservas')">🗓️ Reservas</button>
   <button class="nav-tab" id="tab-eventos" onclick="showVista('eventos')">🎊 Eventos</button>
+  <button class="nav-tab" id="tab-comandas" onclick="showVista('comandas')">📋 Comandas<span id="comandas-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;margin-left:4px;" id="comandas-badge">0</span></button>
 </div>
 
 <div class="vista activa" id="v-mesas">
@@ -518,6 +545,37 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   </div>
 </div>
 
+<div class="vista" id="v-comandas">
+
+  <!-- Métricas -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div class="metric"><div class="metric-lbl">Total</div><div class="metric-val" id="com-cant-total" style="font-size:20px;">0</div></div>
+    <div class="metric"><div class="metric-lbl">Pendientes</div><div class="metric-val" id="com-cant-pend" style="font-size:20px;color:#EF9F27;">0</div></div>
+    <div class="metric"><div class="metric-lbl">Listos</div><div class="metric-val" id="com-cant-listos" style="font-size:20px;color:#3B6D11;">0</div></div>
+  </div>
+
+  <!-- Filtro -->
+  <div style="background:#fff;border:1px solid #E8DFC8;border-radius:10px;padding:10px 12px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:12px;color:#7A6050;font-weight:700;">Filtrar:</span>
+    <select id="com-filtro" onchange="filtrarComandas()" style="padding:6px 10px;border:1px solid #E8DFC8;border-radius:8px;font-size:12px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+      <option value="todos">Todos</option>
+      <option value="pendiente">Pendientes</option>
+      <option value="preparando">Preparando</option>
+      <option value="listo">Listos</option>
+      <option value="entregado">Entregados</option>
+    </select>
+    <select id="com-filtro-origen" onchange="filtrarComandas()" style="padding:6px 10px;border:1px solid #E8DFC8;border-radius:8px;font-size:12px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+      <option value="todos">Mesa + Casa</option>
+      <option value="mesa">🪑 Mesa</option>
+      <option value="casa">🏠 Casa</option>
+    </select>
+  </div>
+
+  <!-- Lista comandas -->
+  <div id="comandas-lista"><p class="empty-msg">Sin pedidos aún</p></div>
+
+</div>
+
 <div class="vista" id="v-eventos">
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
     <div class="metric"><div class="metric-lbl">Total</div><div class="metric-val" id="ev-cant-total" style="font-size:20px;">0</div></div>
@@ -732,8 +790,8 @@ setInterval(()=>{const d=new Date();document.getElementById('hora').textContent=
 document.getElementById('hora').textContent=new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
 
 function showVista(id){
-  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
-  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
+  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
+  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
   document.getElementById('v-'+id).classList.add('activa');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
   if(id==='resumen'){escucharVentas();escucharHistorialCaja();}
@@ -744,6 +802,7 @@ function showVista(id){
   if(id==='torneo'){escucharTorneo();}
   if(id==='reservas'){escucharReservas();}
   if(id==='eventos'){escucharEventos();}
+  if(id==='comandas'){escucharComandas();}
 }
 function volverMesas(){mesaActual=null;showVista('mesas');}
 
@@ -2094,6 +2153,119 @@ document.getElementById('modal-pago').addEventListener('click', function(e) {
 });
 
 // ══════════════════════════════════════════
+// COMANDAS — pedidos de clientes
+// ══════════════════════════════════════════
+let comandasData = [];
+let comandasEscuchando = false;
+let primeraCargaComandas = true;
+
+function escucharComandas(){
+  if(comandasEscuchando) return;
+  comandasEscuchando = true;
+  db.collection('comandas').orderBy('creadoEn','desc').onSnapshot(snap=>{
+    // Detectar nuevos pedidos para notificar
+    if(!primeraCargaComandas){
+      const nuevos = snap.docChanges().filter(c=>c.type==='added');
+      if(nuevos.length > 0){
+        sonarAlertaComanda();
+        registrarNuevasNotif('comanda', nuevos.length);
+      }
+    }
+    primeraCargaComandas = false;
+    comandasData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    actualizarMetricasComandas();
+    filtrarComandas();
+    setSyncOk();
+  }, ()=>setSyncErr());
+}
+
+function sonarAlertaComanda(){
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [0, 0.2, 0.4].forEach((delay,i)=>{
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = [880,1100,1320][i];
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, ctx.currentTime+delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+delay+0.25);
+      osc.start(ctx.currentTime+delay);
+      osc.stop(ctx.currentTime+delay+0.25);
+    });
+  } catch(e){}
+}
+
+function actualizarMetricasComandas(){
+  const el_total = document.getElementById('com-cant-total');
+  const el_pend  = document.getElementById('com-cant-pend');
+  const el_list  = document.getElementById('com-cant-listos');
+  if(!el_total) return;
+  const pendientes = comandasData.filter(c=>c.estado==='pendiente');
+  el_total.textContent = comandasData.length;
+  el_pend.textContent  = pendientes.length;
+  el_list.textContent  = comandasData.filter(c=>c.estado==='listo').length;
+  // Badge en tab
+  const badge = document.getElementById('comandas-badge');
+  if(badge){
+    if(pendientes.length > 0){
+      badge.style.display='inline-flex'; badge.textContent=pendientes.length;
+    } else {
+      badge.style.display='none';
+    }
+  }
+}
+
+function filtrarComandas(){
+  const filtroEstado  = document.getElementById('com-filtro')?.value || 'todos';
+  const filtroOrigen  = document.getElementById('com-filtro-origen')?.value || 'todos';
+  let filtradas = [...comandasData];
+  if(filtroEstado !== 'todos')  filtradas = filtradas.filter(c=>c.estado===filtroEstado);
+  if(filtroOrigen !== 'todos')  filtradas = filtradas.filter(c=>c.origen===filtroOrigen);
+  renderComandas(filtradas);
+}
+
+function renderComandas(lista){
+  const el = document.getElementById('comandas-lista');
+  if(!el) return;
+  if(lista.length===0){ el.innerHTML='<p class="empty-msg">Sin pedidos para mostrar</p>'; return; }
+  const estadoLabel = {pendiente:'⏳ Pendiente',preparando:'👨‍🍳 Preparando',listo:'✅ Listo',entregado:'✓ Entregado'};
+  el.innerHTML = lista.map(c=>{
+    const origenLabel = c.origen==='mesa' ? '🪑 '+(c.mesa||'Mesa') : '🏠 Desde casa';
+    const origenClass = c.origen==='mesa' ? 'mesa' : 'casa';
+    const prods = (c.productos||[]).map(p=>
+      `<div class="com-prod-row"><span>${p.nombre}${p.qty>1?' x'+p.qty:''}</span><span>${fGs(p.subtotal||p.precio*p.qty)}</span></div>`
+    ).join('');
+    return `<div class="comanda-card ${c.estado||'pendiente'}">
+      <div class="com-top">
+        <div>
+          <div class="com-num">#${String(c.numero||'?').padStart(3,'0')} · ${c.cliente||'Cliente'}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <span class="com-origen ${origenClass}">${origenLabel}</span>
+            <span class="com-estado ${c.estado||'pendiente'}">${estadoLabel[c.estado]||c.estado}</span>
+          </div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#7A6050;">${c.hora||''}<br>${c.fecha||''}</div>
+      </div>
+      <div class="com-productos">
+        ${prods}
+        <div class="com-total">Total: ${fGs(c.total||0)}</div>
+      </div>
+      <div class="com-acciones">
+        ${c.estado==='pendiente'   ? `<button class="btn-com btn-com-prep"     onclick="cambiarEstadoComanda('${c.id}','preparando')">👨‍🍳 Preparando</button>` : ''}
+        ${c.estado==='preparando'  ? `<button class="btn-com btn-com-listo"    onclick="cambiarEstadoComanda('${c.id}','listo')">✅ Marcar listo</button>` : ''}
+        ${c.estado==='listo'       ? `<button class="btn-com btn-com-entregar" onclick="cambiarEstadoComanda('${c.id}','entregado')">✓ Entregado</button>` : ''}
+        ${c.estado!=='entregado'   ? `<button class="btn-com btn-com-cancelar" onclick="cambiarEstadoComanda('${c.id}','cancelado')">✗ Cancelar</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cambiarEstadoComanda(id, estado){
+  db.collection('comandas').doc(id).update({estado}).catch(()=>setSyncErr());
+}
+
+// ══════════════════════════════════════════
 // NOTIFICACIONES — reservas y eventos nuevos
 // ══════════════════════════════════════════
 let notifPendientes = 0;
@@ -2147,6 +2319,7 @@ escucharStock();    // arrancar stock al inicio para badge en topbar
 escucharClientes(); // arrancar clientes al inicio para alerta de cumpleaños
 escucharReservas(); // arrancar reservas al inicio para notificaciones
 escucharEventos();  // arrancar eventos al inicio para notificaciones
+escucharComandas(); // arrancar comandas al inicio para notificaciones
 </script>
 </body>
 </html>
