@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Estación Alanna Café — Sistema</title>
+<meta name="theme-color" content="#3B2A1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Estación Alanna">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root{--cafe:#3B2A1A;--miel:#EF9F27;--miel-claro:#FAC775;--miel-fondo:#FAEEDA;--cana:#3B6D11;--crema:#FAF6ED;--crema-oscuro:#F0E8D4;--texto:#2C1F0F;--texto-suave:#7A6050;--rojo:#A32D2D;}
@@ -294,9 +301,65 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 .btn-com-entregar{background:#3B2A1A;color:#FAC775;}
 .btn-com-cancelar{background:none;color:#A32D2D;border:1px solid #F7C1C1;}
 #ticket-tel:focus{border-color:var(--miel);background:#fff;}
+
+/* ── LOGIN PIN ── */
+.login-screen{position:fixed;inset:0;background:var(--cafe);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;}
+.login-screen.oculto{display:none;}
+.login-logo{width:90px;height:90px;border-radius:50%;border:3px solid var(--miel);object-fit:cover;margin-bottom:1rem;}
+.login-logo-ph{width:90px;height:90px;border-radius:50%;border:3px solid var(--miel);background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin-bottom:1rem;}
+.login-titulo{font-family:'Lato',sans-serif;font-size:1.1rem;font-weight:700;color:var(--miel-claro);letter-spacing:1px;margin-bottom:.3rem;}
+.login-sub{font-size:.82rem;color:#BA7517;margin-bottom:2rem;}
+.pin-display{display:flex;gap:10px;margin-bottom:1.6rem;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--miel);background:transparent;transition:background .15s;}
+.pin-dot.lleno{background:var(--miel);}
+.teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:280px;}
+.tecla{padding:18px;background:rgba(255,255,255,.08);border:1px solid rgba(239,159,39,.2);border-radius:14px;font-size:1.4rem;font-weight:700;color:#fff;cursor:pointer;text-align:center;font-family:'Lato',sans-serif;transition:background .15s;-webkit-tap-highlight-color:transparent;}
+.tecla:active{background:rgba(239,159,39,.25);}
+.tecla.borrar{font-size:1rem;color:#BA7517;}
+.tecla.vacia{background:none;border:none;cursor:default;}
+.login-error{color:var(--rojo);font-size:.82rem;margin-top:.8rem;min-height:1.2rem;font-weight:700;}
+.login-rol{display:inline-block;margin-top:.5rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 12px;border-radius:20px;}
+.login-rol.admin{background:rgba(239,159,39,.15);color:var(--miel);}
+.login-rol.socio{background:rgba(59,109,17,.15);color:#7BC242;}
+/* badge rol en topbar */
+.rol-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.5px;}
+.rol-badge.admin{background:rgba(239,159,39,.2);color:var(--miel);}
+.rol-badge.socio{background:rgba(59,109,17,.2);color:#7BC242;}
 </style>
 </head>
 <body>
+
+<!-- ══ PANTALLA DE LOGIN ══ -->
+<div class="login-screen" id="login-screen">
+  <img src="logo.png" class="login-logo" alt="Logo" onerror="this.outerHTML='<div class=login-logo-ph>☕</div>'">
+  <div class="login-titulo">Estación Alanna Café</div>
+  <div class="login-sub">Ingresá tu PIN para continuar</div>
+  <div class="pin-display" id="pin-display">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+    <div class="pin-dot" id="pd4"></div>
+    <div class="pin-dot" id="pd5"></div>
+  </div>
+  <div class="teclado">
+    <div class="tecla" onclick="tecla('1')">1</div>
+    <div class="tecla" onclick="tecla('2')">2</div>
+    <div class="tecla" onclick="tecla('3')">3</div>
+    <div class="tecla" onclick="tecla('4')">4</div>
+    <div class="tecla" onclick="tecla('5')">5</div>
+    <div class="tecla" onclick="tecla('6')">6</div>
+    <div class="tecla" onclick="tecla('7')">7</div>
+    <div class="tecla" onclick="tecla('8')">8</div>
+    <div class="tecla" onclick="tecla('9')">9</div>
+    <div class="tecla vacia"></div>
+    <div class="tecla" onclick="tecla('0')">0</div>
+    <div class="tecla borrar" onclick="borrarPin()">⌫</div>
+  </div>
+  <div class="login-error" id="login-error"></div>
+  <div class="login-rol" id="login-rol-badge" style="display:none;"></div>
+</div>
+
 <div class="topbar">
   <div class="topbar-left">
     <img class="topbar-logo" src="logo.png" alt="Logo" onerror="this.style.display='none'">
@@ -304,6 +367,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <span class="topbar-hora" id="hora"></span>
+    <span class="rol-badge" id="topbar-rol-badge"></span>
     <span class="sync-dot" id="sync-dot"></span>
     <span class="stock-alerta-badge" id="stock-alerta-badge" onclick="showVista('stock')" title="Productos con stock bajo">⚠ <span id="stock-alerta-cant">0</span> bajo stock</span>
     <span class="notif-badge" id="notif-badge" onclick="irANotificaciones()" title="Nuevas reservas o eventos">🔔 <span id="notif-cant">0</span> nueva<span id="notif-plural">s</span></span>
@@ -2317,12 +2381,110 @@ function irANotificaciones(){
   showVista('reservas');
 }
 
-escucharMesas();
-escucharStock();    // arrancar stock al inicio para badge en topbar
-escucharClientes(); // arrancar clientes al inicio para alerta de cumpleaños
-escucharReservas(); // arrancar reservas al inicio para notificaciones
-escucharEventos();  // arrancar eventos al inicio para notificaciones
-escucharComandas(); // arrancar comandas al inicio para notificaciones
+// ══════════════════════════════════════════
+// LOGIN CON PIN
+// ══════════════════════════════════════════
+const PINS = {
+  '202625': { rol: 'admin',  label: '👑 Administrador' },
+  '202686': { rol: 'socio',  label: '🤝 Socio'         }
+};
+
+// Tabs visibles por rol
+const TABS_ROL = {
+  admin: ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'],
+  socio: ['mesas','resumen','stock','empleados','comandas']
+};
+
+let pinActual = '';
+let rolActual = null;
+
+function tecla(num) {
+  if(pinActual.length >= 6) return;
+  pinActual += num;
+  actualizarDots();
+  if(pinActual.length === 6) setTimeout(verificarPin, 150);
+}
+
+function borrarPin() {
+  pinActual = pinActual.slice(0,-1);
+  actualizarDots();
+  document.getElementById('login-error').textContent = '';
+}
+
+function actualizarDots() {
+  for(let i=0; i<6; i++){
+    document.getElementById('pd'+i).classList.toggle('lleno', i < pinActual.length);
+  }
+}
+
+function verificarPin() {
+  const acceso = PINS[pinActual];
+  if(acceso) {
+    rolActual = acceso.rol;
+    // Guardar sesión en sessionStorage
+    sessionStorage.setItem('ea_rol', rolActual);
+    sessionStorage.setItem('ea_pin_ok', '1');
+    entrarAlSistema(acceso);
+  } else {
+    document.getElementById('login-error').textContent = '❌ PIN incorrecto, intentá de nuevo';
+    pinActual = '';
+    actualizarDots();
+    // Vibrar si disponible
+    if(navigator.vibrate) navigator.vibrate([100,50,100]);
+  }
+}
+
+function entrarAlSistema(acceso) {
+  // Ocultar login
+  document.getElementById('login-screen').classList.add('oculto');
+  // Mostrar badge de rol en topbar
+  const badge = document.getElementById('topbar-rol-badge');
+  badge.textContent = acceso.label;
+  badge.className = 'rol-badge ' + acceso.rol;
+  // Aplicar restricciones de tabs según rol
+  aplicarRol(acceso.rol);
+  // Arrancar el sistema
+  escucharMesas();
+  escucharStock();
+  escucharClientes();
+  escucharReservas();
+  escucharEventos();
+  escucharComandas();
+}
+
+function aplicarRol(rol) {
+  const tabsPermitidos = TABS_ROL[rol];
+  // Ocultar tabs no permitidos
+  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = tabsPermitidos.includes(t) ? '' : 'none';
+  });
+}
+
+function cerrarSesion() {
+  sessionStorage.removeItem('ea_rol');
+  sessionStorage.removeItem('ea_pin_ok');
+  rolActual = null;
+  pinActual = '';
+  actualizarDots();
+  document.getElementById('login-screen').classList.remove('oculto');
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('topbar-rol-badge').textContent = '';
+}
+
+// Verificar si ya hay sesión activa (recarga de página)
+(function initLogin(){
+  const rolGuardado = sessionStorage.getItem('ea_rol');
+  if(rolGuardado && sessionStorage.getItem('ea_pin_ok')) {
+    rolActual = rolGuardado;
+    const acceso = Object.values(PINS).find(p=>p.rol===rolGuardado);
+    if(acceso) { entrarAlSistema(acceso); return; }
+  }
+  // Sin sesión — mostrar login
+  document.getElementById('login-screen').classList.remove('oculto');
+})();
+
+// Arranque controlado por login — ver initLogin() arriba
 </script>
 </body>
 </html>
