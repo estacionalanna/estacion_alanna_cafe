@@ -238,6 +238,123 @@
     cursor:pointer;
   }
   .clear-btn:active{background:rgba(184,92,74,0.08);}
+
+  .cobrar-bar{
+    padding:4px 20px 4px;
+    flex-shrink:0;
+  }
+  .cobrar-btn{
+    width:100%;
+    background:var(--salvia);
+    color:#20260F;
+    border:none;
+    border-radius:12px;
+    padding:16px;
+    font-size:16px;
+    font-weight:900;
+    letter-spacing:0.3px;
+    cursor:pointer;
+    box-shadow:0 4px 0 #7C8560;
+    transition:transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .cobrar-btn:active{transform:translateY(3px); box-shadow:0 1px 0 #7C8560;}
+  .cobrar-btn:disabled{
+    background:#DCD6C2; color:#A99; box-shadow:none; cursor:default;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(61,42,31,0.55);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-sheet{
+    width:100%;
+    max-width:460px;
+    background:var(--crema);
+    border-radius:18px 18px 0 0;
+    padding:22px 20px 26px;
+    animation:sheetUp 0.2s ease;
+  }
+  @keyframes sheetUp{
+    from{transform:translateY(30px); opacity:0;}
+    to{transform:translateY(0); opacity:1;}
+  }
+  .modal-title{
+    font-family:'Playfair Display',serif;
+    font-weight:700;
+    font-size:19px;
+    color:var(--cafe);
+    text-align:center;
+  }
+  .modal-total{
+    text-align:center;
+    font-size:26px;
+    font-weight:900;
+    color:var(--miel);
+    margin:4px 0 18px;
+    font-variant-numeric:tabular-nums;
+  }
+  .metodo-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .metodo-btn{
+    background:#fff;
+    border:2px solid var(--dorado);
+    border-radius:12px;
+    padding:16px 8px;
+    font-family:'Lato',sans-serif;
+    font-size:14px;
+    font-weight:700;
+    color:var(--cafe);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+  }
+  .metodo-btn:active{background:var(--crema2); transform:scale(0.97);}
+  .micono{font-size:26px;}
+  .modal-cancel{
+    width:100%;
+    background:none;
+    border:none;
+    color:var(--cafe-claro);
+    font-size:14px;
+    padding:14px 0 0;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--cafe);
+    color:var(--crema);
+    padding:13px 22px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:700;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.2s ease, transform 0.2s ease;
+    z-index:60;
+    max-width:90%;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,0.3);
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+  .toast.error{background:var(--rojo);}
 </style>
 </head>
 <body>
@@ -280,11 +397,34 @@
     <ul id="list"></ul>
   </div>
 
+  <div class="cobrar-bar">
+    <button class="cobrar-btn" id="cobrarBtn" type="button">✓ Cobrar y registrar venta</button>
+  </div>
+
   <footer>
-    <button class="clear-btn" id="clearBtn">Nueva cuenta (vaciar todo)</button>
+    <button class="clear-btn" id="clearBtn">Vaciar sin registrar venta (corregir error)</button>
   </footer>
 </div>
 
+<!-- MODAL MÉTODO DE PAGO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-sheet">
+    <div class="modal-title">¿Cómo pagó?</div>
+    <div class="modal-total" id="modalTotal">₲ 0</div>
+    <div class="metodo-grid">
+      <button class="metodo-btn" data-metodo="Efectivo"><span class="micono">💵</span>Efectivo</button>
+      <button class="metodo-btn" data-metodo="QR/Bancard"><span class="micono">📱</span>QR/Bancard</button>
+      <button class="metodo-btn" data-metodo="Tarjeta"><span class="micono">💳</span>Tarjeta</button>
+      <button class="metodo-btn" data-metodo="Transferencia"><span class="micono">🏦</span>Transferencia</button>
+    </div>
+    <button class="modal-cancel" id="modalCancel">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
   let items = [];
 
@@ -294,6 +434,10 @@
   const itemCountEl = document.getElementById('itemCount');
   const descInput = document.getElementById('desc');
   const priceInput = document.getElementById('price');
+  const cobrarBtn = document.getElementById('cobrarBtn');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTotal = document.getElementById('modalTotal');
+  const toastEl = document.getElementById('toast');
 
   function formatGs(n){
     return '₲ ' + Math.round(n).toLocaleString('es-PY');
@@ -321,6 +465,7 @@
     const total = items.reduce((sum, it) => sum + it.price, 0);
     totalAmountEl.textContent = formatGs(total);
     itemCountEl.textContent = items.length === 1 ? '1 ítem' : items.length + ' ítems';
+    cobrarBtn.disabled = items.length === 0;
   }
 
   function addItem(desc, price){
@@ -366,10 +511,98 @@
 
   document.getElementById('clearBtn').addEventListener('click', () => {
     if(items.length === 0) return;
-    if(confirm('¿Vaciar la cuenta actual y empezar una nueva?')){
+    if(confirm('¿Vaciar la cuenta actual SIN registrar la venta? Usá esto solo si te equivocaste.')){
       items = [];
       render();
     }
+  });
+
+  // ── FIREBASE (misma base que el sistema de gestión) ──
+  // Si no hay internet, la app sigue funcionando como calculadora;
+  // solo el registro de la venta en el sistema requiere conexión.
+  let db = null;
+  try {
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp({
+        apiKey:"AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8",
+        authDomain:"estacion-alanna.firebaseapp.com",
+        projectId:"estacion-alanna",
+        storageBucket:"estacion-alanna.firebasestorage.app",
+        messagingSenderId:"776786709550",
+        appId:"1:776786709550:web:b5b77a46abdbfb363423bf"
+      });
+      db = firebase.firestore();
+    }
+  } catch (e) { console.error('Firebase no disponible:', e); }
+
+  function showToast(msg, isError){
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { toastEl.className = 'toast'; }, 3200);
+  }
+
+  function buildDetalle(){
+    const map = new Map();
+    items.forEach(it => {
+      const nombre = it.desc || 'Ítem sin descripción';
+      const key = nombre + '||' + it.price;
+      if(!map.has(key)) map.set(key, { nombre, qty: 0 });
+      map.get(key).qty++;
+    });
+    return Array.from(map.values())
+      .map(g => g.nombre + (g.qty > 1 ? ' x' + g.qty : ''))
+      .join(', ');
+  }
+
+  // ── ABRIR / CERRAR MODAL DE COBRO ──
+  cobrarBtn.addEventListener('click', () => {
+    if(items.length === 0) return;
+    const total = items.reduce((s, it) => s + it.price, 0);
+    modalTotal.textContent = formatGs(total);
+    modalOverlay.classList.add('show');
+  });
+
+  document.getElementById('modalCancel').addEventListener('click', () => {
+    modalOverlay.classList.remove('show');
+  });
+  modalOverlay.addEventListener('click', (e) => {
+    if(e.target === modalOverlay) modalOverlay.classList.remove('show');
+  });
+
+  // ── REGISTRAR LA VENTA ──
+  document.querySelectorAll('.metodo-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const metodo = btn.dataset.metodo;
+      const total = items.reduce((s, it) => s + it.price, 0);
+
+      if (!db) {
+        showToast('Sin conexión al sistema. Anotá la venta a mano y reintentá cuando vuelva el internet.', true);
+        modalOverlay.classList.remove('show');
+        return;
+      }
+
+      const hora = new Date().toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' });
+      const fecha = new Date().toLocaleDateString('es-PY');
+      const detalle = buildDetalle();
+
+      document.querySelectorAll('.metodo-btn').forEach(b => b.disabled = true);
+
+      db.collection('ventas').add({
+        hora, detalle, total,
+        mesa: 'Caja manual',
+        fecha,
+        metodoPago: metodo
+      }).then(() => {
+        modalOverlay.classList.remove('show');
+        showToast('✓ Venta registrada — ' + formatGs(total));
+        items = [];
+        render();
+      }).catch(() => {
+        showToast('No se pudo registrar. Revisá tu conexión e intentá de nuevo.', true);
+      }).finally(() => {
+        document.querySelectorAll('.metodo-btn').forEach(b => b.disabled = false);
+      });
+    });
   });
 
   render();
