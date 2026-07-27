@@ -384,6 +384,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-reservas" onclick="showVista('reservas')">🗓️ Reservas</button>
   <button class="nav-tab" id="tab-eventos" onclick="showVista('eventos')">🎊 Eventos</button>
   <button class="nav-tab" id="tab-comandas" onclick="showVista('comandas')">📋 Comandas<span id="comandas-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;margin-left:4px;" id="comandas-badge">0</span></button>
+  <a class="nav-tab" href="caja_alanna.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">🧾 Caja manual</a>
 </div>
 
 <div class="vista activa" id="v-mesas">
@@ -838,14 +839,15 @@ const MENU = [
   {cat:'Cafés puros',items:[{n:'Expreso',p:8000},{n:'Americano',p:8000}]},
   {cat:'Cafés suaves',items:[{n:'Café cortado',p:10000},{n:'Café con leche',p:7000}]},
   {cat:'Especiales',items:[{n:'Capuchino',p:12000},{n:'Mocaccino',p:12000},{n:'Estación Arroyos ★',p:5000}]},
-  {cat:'Cocidos',items:[{n:'Cocido negro',p:5000},{n:'Cocido con leche',p:6500},{n:"Cocido maní ku'i",p:7500},{n:'Estación Esteros ★',p:5000}]},
+  {cat:'Cocidos',items:[{n:'Cocido negro',p:3000},{n:'Cocido con leche',p:5000},{n:"Cocido maní ku'i",p:7500},{n:'Estación Esteros ★',p:5000}]},
   {cat:'Helados — cucurucho',items:[{n:'Helado 1 bocha',p:3000},{n:'Helado 2 bochas',p:5000}]},
   {cat:'Helados — vaso',items:[{n:'Helado vaso ¼ kg',p:10000},{n:'Helado por kilo',p:30000}]},
   {cat:'Paletas y otros',items:[{n:'Chupachus',p:1000},{n:'Paleta frutal',p:2000},{n:'Paleta cremosa',p:3000}]},
-  {cat:'Salados',items:[{n:'Chipa argolla',p:5000},{n:'Mbeju',p:5000},{n:'Pan tostado con aderezo',p:5000},{n:'Mixto de queso',p:5000},{n:'Mixto de jamón y queso',p:6500},{n:'Sándwich de jamón y queso',p:5000},{n:'Sándwich jamón, queso y huevo',p:7500},{n:'Sándwich de verdura',p:6000},{n:'Pan con kesú',p:5000},{n:'Pan relleno de jamón y queso',p:7500},{n:'Bocaditos — por pedido',p:0}]},
+  {cat:'Salados',items:[{n:'Chipa argolla',p:5000},{n:'Mbeju',p:5000},{n:'Pan tostado con aderezo',p:5000},{n:'Mixto de queso',p:5000},{n:'Mixto de jamón y queso',p:6500},{n:'Sándwich de jamón y queso',p:5000},{n:'Sándwich jamón, queso y huevo',p:7500},{n:'Sándwich de verdura',p:6000},{n:'Pan con kesú',p:5000},{n:'Pan relleno de jamón y queso',p:5000},{n:'Empanadas caseras al horno',p:5000},{n:'Bocaditos — por pedido',p:0}]},
+  {cat:'Combos',items:[{n:'Combo 1',p:8000},{n:'Combo 2',p:10000},{n:'Combo 3',p:15000}]},
   {cat:'Jugos naturales',items:[{n:'Licuado de naranja',p:5000},{n:'Licuado de durazno',p:8500},{n:'Licuado de frutilla',p:10000},{n:'Licuado de manzana',p:5000},{n:'Limonada',p:5000}]},
   {cat:'Bebidas calientes y frías',items:[{n:'Chocolatada caliente',p:12000},{n:'Chocolatada fría',p:10000},{n:'Té',p:5000}]},
-  {cat:'Dulces',items:[{n:'Medialunas',p:8000},{n:'Bollos',p:6000},{n:'Pastafrola',p:8000},{n:'Pionono',p:6000},{n:'Marmolada',p:8000},{n:'Alfajor',p:8000},{n:'Brownie',p:11000},{n:'Cookies',p:11000}]},
+  {cat:'Dulces',items:[{n:'Medialunas',p:6000},{n:'Pastafrola',p:8000},{n:'Pionono',p:5000},{n:'Marmolada',p:5000},{n:'Alfajor',p:8000},{n:'Brownie',p:10000}]},
   {cat:'Tortas',items:[{n:'Torta de chocolate — porción',p:15000},{n:'Torta de chocolate — kilo',p:120000},{n:'Torta de vainilla — porción',p:12000},{n:'Torta de vainilla — kilo',p:80000}]},
 ];
 
