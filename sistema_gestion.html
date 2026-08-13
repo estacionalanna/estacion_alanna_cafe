@@ -384,7 +384,6 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-reservas" onclick="showVista('reservas')">🗓️ Reservas</button>
   <button class="nav-tab" id="tab-eventos" onclick="showVista('eventos')">🎊 Eventos</button>
   <button class="nav-tab" id="tab-comandas" onclick="showVista('comandas')">📋 Comandas<span id="comandas-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;margin-left:4px;" id="comandas-badge">0</span></button>
-  <a class="nav-tab" href="caja_alanna.html" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">🧾 Caja manual</a>
 </div>
 
 <div class="vista activa" id="v-mesas">
@@ -839,15 +838,14 @@ const MENU = [
   {cat:'Cafés puros',items:[{n:'Expreso',p:8000},{n:'Americano',p:8000}]},
   {cat:'Cafés suaves',items:[{n:'Café cortado',p:10000},{n:'Café con leche',p:7000}]},
   {cat:'Especiales',items:[{n:'Capuchino',p:12000},{n:'Mocaccino',p:12000},{n:'Estación Arroyos ★',p:5000}]},
-  {cat:'Cocidos',items:[{n:'Cocido negro',p:3000},{n:'Cocido con leche',p:5000},{n:"Cocido maní ku'i",p:7500},{n:'Estación Esteros ★',p:5000}]},
+  {cat:'Cocidos',items:[{n:'Cocido negro',p:5000},{n:'Cocido con leche',p:6500},{n:"Cocido maní ku'i",p:7500},{n:'Estación Esteros ★',p:5000}]},
   {cat:'Helados — cucurucho',items:[{n:'Helado 1 bocha',p:3000},{n:'Helado 2 bochas',p:5000}]},
   {cat:'Helados — vaso',items:[{n:'Helado vaso ¼ kg',p:10000},{n:'Helado por kilo',p:30000}]},
   {cat:'Paletas y otros',items:[{n:'Chupachus',p:1000},{n:'Paleta frutal',p:2000},{n:'Paleta cremosa',p:3000}]},
-  {cat:'Salados',items:[{n:'Chipa argolla',p:5000},{n:'Mbeju',p:5000},{n:'Pan tostado con aderezo',p:5000},{n:'Mixto de queso',p:5000},{n:'Mixto de jamón y queso',p:6500},{n:'Sándwich de jamón y queso',p:5000},{n:'Sándwich jamón, queso y huevo',p:7500},{n:'Sándwich de verdura',p:6000},{n:'Pan con kesú',p:5000},{n:'Pan relleno de jamón y queso',p:5000},{n:'Empanadas caseras al horno',p:5000},{n:'Bocaditos — por pedido',p:0}]},
-  {cat:'Combos',items:[{n:'Combo 1',p:8000},{n:'Combo 2',p:10000},{n:'Combo 3',p:15000}]},
+  {cat:'Salados',items:[{n:'Chipa argolla',p:5000},{n:'Mbeju',p:5000},{n:'Pan tostado con aderezo',p:5000},{n:'Mixto de queso',p:5000},{n:'Mixto de jamón y queso',p:6500},{n:'Sándwich de jamón y queso',p:5000},{n:'Sándwich jamón, queso y huevo',p:7500},{n:'Sándwich de verdura',p:6000},{n:'Pan con kesú',p:5000},{n:'Pan relleno de jamón y queso',p:7500}]},
   {cat:'Jugos naturales',items:[{n:'Licuado de naranja',p:5000},{n:'Licuado de durazno',p:8500},{n:'Licuado de frutilla',p:10000},{n:'Licuado de manzana',p:5000},{n:'Limonada',p:5000}]},
-  {cat:'Bebidas calientes y frías',items:[{n:'Chocolatada caliente',p:12000},{n:'Chocolatada fría',p:10000},{n:'Té',p:5000}]},
-  {cat:'Dulces',items:[{n:'Medialunas',p:6000},{n:'Pastafrola',p:8000},{n:'Pionono',p:5000},{n:'Marmolada',p:5000},{n:'Alfajor',p:8000},{n:'Brownie',p:10000}]},
+  {cat:'Bebidas calientes y frías',items:[{n:'Chocolatada caliente',p:12000},{n:'Chocolatada fría',p:10000},{n:'Tea',p:5000}]},
+  {cat:'Dulces',items:[{n:'Medialunas',p:8000},{n:'Bollos',p:6000},{n:'Pastafrola',p:8000},{n:'Pionono',p:6000},{n:'Marmolada',p:8000},{n:'Alfajor',p:8000},{n:'Brownie',p:11000},{n:'Cookies',p:11000}]},
   {cat:'Tortas',items:[{n:'Torta de chocolate — porción',p:15000},{n:'Torta de chocolate — kilo',p:120000},{n:'Torta de vainilla — porción',p:12000},{n:'Torta de vainilla — kilo',p:80000}]},
 ];
 
@@ -894,7 +892,19 @@ function escucharMesas(){
   db.collection('playstation').doc('ps1').onSnapshot(snap=>{
     if(snap.exists){
       const d=snap.data();psData.pedido=d.pedido||{};
-      if(d.activa&&!psData.activa){psData.activa=true;psData.segundos=d.segundos||0;if(!psIntervalId)psIntervalId=setInterval(tickPS,1000);}
+      if(d.activa&&!psData.activa){
+        psData.activa=true;
+        // Recalcular tiempo real si tiene horaInicio
+        if(d.horaInicio && d.segundosTotales){
+          const transcurridos=Math.floor((Date.now()-d.horaInicio)/1000);
+          psData.segundos=Math.max(0,d.segundosTotales-transcurridos);
+          psData.horaInicio=d.horaInicio;
+          psData.segundosTotales=d.segundosTotales;
+        } else {
+          psData.segundos=d.segundos||0;
+        }
+        if(!psIntervalId)psIntervalId=setInterval(tickPS,1000);
+      }
       if(!d.activa&&psData.activa){psData.activa=false;psData.segundos=0;if(psIntervalId){clearInterval(psIntervalId);psIntervalId=null;}}
     }
     renderMesas();
@@ -979,24 +989,49 @@ function renderTicketPS(){renderTicketGenerico('ps-ticket-lista','ps-total',psDa
 function selT(el,mins){document.querySelectorAll('.t-opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');psTiempoSel=mins;}
 function iniciarPS(){
   if(psIntervalId)clearInterval(psIntervalId);
-  psData.segundos=psTiempoSel*60;psData.activa=true;
-  db.collection('playstation').doc('ps1').set({activa:true,segundos:psData.segundos,pedido:psData.pedido||{}});
+  const segundosTotales = psTiempoSel*60;
+  const horaInicio = Date.now(); // timestamp real en milisegundos
+  psData.segundos = segundosTotales;
+  psData.activa = true;
+  psData.horaInicio = horaInicio;
+  psData.segundosTotales = segundosTotales;
+  db.collection('playstation').doc('ps1').set({
+    activa: true,
+    segundos: segundosTotales,
+    horaInicio: horaInicio,
+    segundosTotales: segundosTotales,
+    pedido: psData.pedido||{}
+  });
   psIntervalId=setInterval(tickPS,1000);actualizarBigTimer();
 }
 function tickPS(){
-  if(psData.segundos>0){
-    psData.segundos--;actualizarBigTimer();
-    document.getElementById('ps-timer-mini').textContent=formatT(psData.segundos);
-    if(psData.segundos%15===0)db.collection('playstation').doc('ps1').update({segundos:psData.segundos}).catch(()=>{});
-    if(psData.segundos===0){clearInterval(psIntervalId);psIntervalId=null;psData.activa=false;
-      db.collection('playstation').doc('ps1').update({activa:false,segundos:0}).catch(()=>{});
-      alert('¡Tiempo de PlayStation terminado!');renderMesas();}
+  if(!psData.activa) return;
+  // Calcular segundos reales restantes usando horaInicio
+  let segundosRestantes;
+  if(psData.horaInicio && psData.segundosTotales){
+    const transcurridos = Math.floor((Date.now() - psData.horaInicio) / 1000);
+    segundosRestantes = Math.max(0, psData.segundosTotales - transcurridos);
+  } else {
+    psData.segundos--;
+    segundosRestantes = psData.segundos;
+  }
+  psData.segundos = segundosRestantes;
+  actualizarBigTimer();
+  document.getElementById('ps-timer-mini').textContent=formatT(psData.segundos);
+  // Guardar en Firebase cada 15 segundos
+  if(psData.segundos%15===0){
+    db.collection('playstation').doc('ps1').update({segundos:psData.segundos}).catch(()=>{});
+  }
+  if(psData.segundos===0){
+    clearInterval(psIntervalId);psIntervalId=null;psData.activa=false;
+    db.collection('playstation').doc('ps1').update({activa:false,segundos:0,horaInicio:null}).catch(()=>{});
+    alert('¡Tiempo de PlayStation terminado!');renderMesas();
   }
 }
 function detenerPS(){
   if(psIntervalId){clearInterval(psIntervalId);psIntervalId=null;}
-  psData.activa=false;psData.segundos=0;
-  db.collection('playstation').doc('ps1').update({activa:false,segundos:0}).catch(()=>{});
+  psData.activa=false;psData.segundos=0;psData.horaInicio=null;psData.segundosTotales=0;
+  db.collection('playstation').doc('ps1').update({activa:false,segundos:0,horaInicio:null,segundosTotales:0}).catch(()=>{});
   actualizarBigTimer();document.getElementById('ps-timer-mini').textContent='--:--';renderMesas();
 }
 function actualizarBigTimer(){
@@ -1176,8 +1211,30 @@ function cambiarStock(id,delta){
 }
 
 db.collection('playstation').doc('ps1').get().then(snap=>{
-  if(!snap.exists)db.collection('playstation').doc('ps1').set({activa:false,segundos:0,pedido:{}});
-  else{const d=snap.data();psData=d;if(d.activa&&d.segundos>0){psIntervalId=setInterval(tickPS,1000);}}
+  if(!snap.exists){
+    db.collection('playstation').doc('ps1').set({activa:false,segundos:0,pedido:{}});
+  } else {
+    const d=snap.data();
+    psData=d;
+    if(d.activa){
+      // Recalcular tiempo real transcurrido
+      if(d.horaInicio && d.segundosTotales){
+        const transcurridos = Math.floor((Date.now() - d.horaInicio) / 1000);
+        const restantes = Math.max(0, d.segundosTotales - transcurridos);
+        psData.segundos = restantes;
+        if(restantes === 0){
+          // Ya venció mientras no estaba en el sistema
+          psData.activa=false;
+          db.collection('playstation').doc('ps1').update({activa:false,segundos:0,horaInicio:null}).catch(()=>{});
+          alert('¡El tiempo de PlayStation ya terminó!');
+        } else {
+          psIntervalId=setInterval(tickPS,1000);
+        }
+      } else if(d.segundos > 0){
+        psIntervalId=setInterval(tickPS,1000);
+      }
+    }
+  }
 }).catch(()=>setSyncErr());
 
 // ══════════════════════════════════════════════
@@ -2333,24 +2390,7 @@ function renderComandas(lista){
 }
 
 function cambiarEstadoComanda(id, estado){
-  db.collection('comandas').doc(id).update({estado}).then(()=>{
-    // Al entregar → registrar en ventas para sumar a la caja del día
-    if(estado === 'entregado'){
-      const comanda = comandasData.find(c=>c.id===id);
-      if(comanda && (comanda.total||0) > 0){
-        const hora = new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
-        const detalle = (comanda.productos||[]).map(p=>p.nombre+(p.qty>1?' x'+p.qty:'')).join(', ');
-        const origen = comanda.origen==='casa' ? '🏠 Casa' : (comanda.mesa||'Mesa');
-        db.collection('ventas').add({
-          hora, detalle,
-          total: comanda.total,
-          mesa: origen+' — '+(comanda.cliente||'Cliente'),
-          fecha: new Date().toLocaleDateString('es-PY'),
-          metodoPago: 'Transferencia'
-        }).catch(()=>setSyncErr());
-      }
-    }
-  }).catch(()=>setSyncErr());
+  db.collection('comandas').doc(id).update({estado}).catch(()=>setSyncErr());
 }
 
 // ══════════════════════════════════════════
