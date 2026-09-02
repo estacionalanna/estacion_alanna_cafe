@@ -28,6 +28,11 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 .notif-badge{display:none;align-items:center;gap:4px;background:#1565C0;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;cursor:pointer;animation:pulso 1.5s infinite;}
 .notif-badge.show{display:flex;}
 @keyframes pulso{0%,100%{opacity:1;}50%{opacity:.6;}}
+/* ── COBRO RÁPIDO ── */
+.tecla-cm{padding:16px;background:#FAF6ED;border:1.5px solid #E8DFC8;border-radius:10px;font-size:1.3rem;font-weight:700;color:#3B2A1A;cursor:pointer;font-family:'Lato',sans-serif;transition:background .1s;-webkit-tap-highlight-color:transparent;}
+.tecla-cm:active{background:#FAEEDA;}
+.cm-metodo{display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;background:#FAF6ED;border:2px solid #E8DFC8;border-radius:10px;font-size:12px;font-weight:700;color:#7A6050;cursor:pointer;transition:all .15s;}
+.cm-metodo.sel{background:#FAEEDA;border-color:#EF9F27;color:#854F0B;}
 /* ── MODAL CUMPLEAÑOS ── */
 .modal-cumple-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:600;display:none;align-items:center;justify-content:center;padding:1.2rem;}
 .modal-cumple-overlay.show{display:flex;}
@@ -380,6 +385,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-cumple" onclick="showVista('cumple')">🎂 Clientes</button>
   <button class="nav-tab" id="tab-reporte" onclick="showVista('reporte')">📊 Reporte</button>
   <button class="nav-tab" id="tab-torneo" onclick="showVista('torneo')">🏆 Torneo</button>
+  <button class="nav-tab" id="tab-cobro" onclick="showVista('cobro')">🧾 Cobro</button>
   <button class="nav-tab" id="tab-reservas" onclick="showVista('reservas')">🗓️ Reservas</button>
   <button class="nav-tab" id="tab-eventos" onclick="showVista('eventos')">🎊 Eventos</button>
   <button class="nav-tab" id="tab-comandas" onclick="showVista('comandas')">📋 Comandas<span id="comandas-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;margin-left:4px;" id="comandas-badge">0</span></button>
@@ -597,6 +603,64 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <!-- GANADOR -->
   <div id="tt-ganador-content" style="display:none;">
     <div id="tor-ganador-container"><p class="empty-msg">El torneo aún no tiene ganador</p></div>
+  </div>
+</div>
+
+<div class="vista" id="v-cobro">
+  <div style="background:#3B2A1A;border-radius:12px;padding:16px;margin-bottom:12px;text-align:center;">
+    <div style="font-size:24px;margin-bottom:4px;">🧾</div>
+    <div style="font-size:15px;font-weight:700;color:#FAC775;">Cobro rápido</div>
+    <div style="font-size:11px;color:#BA7517;margin-top:2px;">Registrá cualquier venta manual directamente en caja</div>
+  </div>
+
+  <!-- Display del monto -->
+  <div class="panel" style="margin-bottom:10px;">
+    <div class="panel-title">Monto a cobrar</div>
+    <div style="font-size:36px;font-weight:700;color:#3B2A1A;text-align:center;padding:14px;background:#FAF6ED;border-radius:10px;border:1.5px solid #E8DFC8;letter-spacing:2px;margin:8px 0;" id="cm-display">₲ 0</div>
+    <!-- Teclado numérico -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
+      <button class="tecla-cm" onclick="cmTecla('1')">1</button>
+      <button class="tecla-cm" onclick="cmTecla('2')">2</button>
+      <button class="tecla-cm" onclick="cmTecla('3')">3</button>
+      <button class="tecla-cm" onclick="cmTecla('4')">4</button>
+      <button class="tecla-cm" onclick="cmTecla('5')">5</button>
+      <button class="tecla-cm" onclick="cmTecla('6')">6</button>
+      <button class="tecla-cm" onclick="cmTecla('7')">7</button>
+      <button class="tecla-cm" onclick="cmTecla('8')">8</button>
+      <button class="tecla-cm" onclick="cmTecla('9')">9</button>
+      <button class="tecla-cm" onclick="cmTecla('000')" style="font-size:13px;">000</button>
+      <button class="tecla-cm" onclick="cmTecla('0')">0</button>
+      <button class="tecla-cm" onclick="cmBorrar()" style="color:#A32D2D;font-size:16px;">⌫</button>
+    </div>
+  </div>
+
+  <!-- Descripción -->
+  <div class="panel" style="margin-bottom:10px;">
+    <div class="panel-title">Descripción (opcional)</div>
+    <input type="text" id="cm-desc" placeholder="Ej: Venta mostrador, encargo, etc."
+      style="width:100%;padding:10px 12px;border:1.5px solid #E8DFC8;border-radius:8px;font-size:13px;font-family:'Lato',sans-serif;background:#FAF6ED;margin-top:6px;outline:none;">
+  </div>
+
+  <!-- Método de pago -->
+  <div class="panel" style="margin-bottom:10px;">
+    <div class="panel-title">Método de pago</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+      <div class="cm-metodo sel" id="cmm-efectivo" onclick="cmSelMetodo('Efectivo',this)">💵 Efectivo</div>
+      <div class="cm-metodo" id="cmm-qr"       onclick="cmSelMetodo('QR/Bancard',this)">📱 QR/Bancard</div>
+      <div class="cm-metodo" id="cmm-tarjeta"  onclick="cmSelMetodo('Tarjeta',this)">💳 Tarjeta</div>
+      <div class="cm-metodo" id="cmm-transf"   onclick="cmSelMetodo('Transferencia',this)">🏦 Transferencia</div>
+    </div>
+  </div>
+
+  <button onclick="cmRegistrar()" style="width:100%;padding:14px;background:#3B6D11;color:#EAF3DE;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;">
+    ✓ Registrar en caja
+  </button>
+  <div id="cm-feedback" style="text-align:center;font-size:13px;font-weight:700;margin-top:10px;min-height:20px;"></div>
+
+  <!-- Historial de hoy -->
+  <div class="panel" style="margin-top:12px;">
+    <div class="panel-title">Registros de hoy</div>
+    <div id="cm-historial"><p class="empty-msg">Sin registros aún</p></div>
   </div>
 </div>
 
@@ -867,7 +931,7 @@ setInterval(()=>{const d=new Date();document.getElementById('hora').textContent=
 document.getElementById('hora').textContent=new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
 
 function showVista(id){
-  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
+  ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','cobro','reservas','eventos','comandas'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
   ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
   document.getElementById('v-'+id).classList.add('activa');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
@@ -879,6 +943,7 @@ function showVista(id){
   if(id==='torneo'){escucharTorneo();}
   if(id==='reservas'){escucharReservas();}
   if(id==='eventos'){escucharEventos();}
+  if(id==='cobro'){escucharCajaManual();}
   if(id==='comandas'){escucharComandas();}
 }
 function volverMesas(){mesaActual=null;showVista('mesas');}
@@ -2443,6 +2508,91 @@ function renderComandas(lista){
 
 function cambiarEstadoComanda(id, estado){
   db.collection('comandas').doc(id).update({estado}).catch(()=>setSyncErr());
+}
+
+// ══════════════════════════════════════════
+// COBRO RÁPIDO — caja manual
+// ══════════════════════════════════════════
+let cmMonto = '';
+let cmMetodo = 'Efectivo';
+let cmEscuchando = false;
+
+function cmTecla(num){
+  if(cmMonto.length >= 9) return;
+  if(num === '000' && cmMonto === '') return;
+  cmMonto += num;
+  cmActualizarDisplay();
+}
+function cmBorrar(){
+  cmMonto = cmMonto.slice(0,-1);
+  cmActualizarDisplay();
+}
+function cmActualizarDisplay(){
+  const el = document.getElementById('cm-display');
+  if(!el) return;
+  const val = parseInt(cmMonto||'0');
+  el.textContent = '₲ ' + val.toLocaleString('es-PY');
+  el.style.color = val > 0 ? '#3B2A1A' : '#BA7517';
+}
+function cmSelMetodo(metodo, el){
+  cmMetodo = metodo;
+  document.querySelectorAll('.cm-metodo').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function cmRegistrar(){
+  const monto = parseInt(cmMonto||'0');
+  if(monto <= 0){
+    const fb = document.getElementById('cm-feedback');
+    if(fb){ fb.textContent='⚠️ Ingresá un monto válido'; fb.style.color='#A32D2D'; }
+    return;
+  }
+  const desc  = document.getElementById('cm-desc').value.trim() || 'Cobro rápido';
+  const hora  = new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
+  const fecha = new Date().toLocaleDateString('es-PY');
+  db.collection('ventas').add({
+    hora, fecha,
+    detalle: desc,
+    total: monto,
+    mesa: '🧾 Cobro rápido',
+    metodoPago: cmMetodo
+  }).then(()=>{
+    const fb = document.getElementById('cm-feedback');
+    if(fb){
+      fb.textContent = '✅ ₲ '+monto.toLocaleString('es-PY')+' registrado en caja';
+      fb.style.color = '#3B6D11';
+      setTimeout(()=>{ if(fb) fb.textContent=''; }, 3000);
+    }
+    cmMonto = '';
+    cmActualizarDisplay();
+    document.getElementById('cm-desc').value = '';
+    setSyncOk();
+  }).catch(()=>setSyncErr());
+}
+function escucharCajaManual(){
+  if(cmEscuchando) return;
+  cmEscuchando = true;
+  db.collection('ventas').orderBy('hora','desc').onSnapshot(snap=>{
+    const fecha = new Date().toLocaleDateString('es-PY');
+    const ventas = snap.docs.map(d=>d.data())
+      .filter(v=>v.fecha===fecha && v.mesa==='🧾 Cobro rápido');
+    const el = document.getElementById('cm-historial');
+    if(!el) return;
+    if(ventas.length===0){ el.innerHTML='<p class="empty-msg">Sin registros hoy</p>'; return; }
+    const total = ventas.reduce((s,v)=>s+(v.total||0),0);
+    el.innerHTML = ventas.map(v=>`
+      <div class="venta-row">
+        <span class="venta-hora">${v.hora}</span>
+        <span class="venta-det">${v.detalle}<br>
+          <span style="font-size:10px;color:#BA7517;">${v.metodoPago||''}</span>
+        </span>
+        <span class="venta-amt">${fGs(v.total)}</span>
+      </div>`).join('') +
+      `<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:13px;border-top:1px solid #E8DFC8;margin-top:4px;">
+        <span style="color:#7A6050;">Total registrado hoy</span>
+        <span style="color:#3B6D11;">${fGs(total)}</span>
+      </div>`;
+    setSyncOk();
+  },()=>setSyncErr());
 }
 
 // ══════════════════════════════════════════
