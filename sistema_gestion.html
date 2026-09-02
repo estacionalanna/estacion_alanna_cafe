@@ -369,14 +369,13 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
     <span class="topbar-hora" id="hora"></span>
     <span class="rol-badge" id="topbar-rol-badge"></span>
     <span class="sync-dot" id="sync-dot"></span>
-    <span class="stock-alerta-badge" id="stock-alerta-badge" onclick="showVista('stock')" title="Productos con stock bajo">⚠ <span id="stock-alerta-cant">0</span> bajo stock</span>
     <span class="notif-badge" id="notif-badge" onclick="irANotificaciones()" title="Nuevas reservas o eventos">🔔 <span id="notif-cant">0</span> nueva<span id="notif-plural">s</span></span>
   </div>
 </div>
 <div class="nav-tabs">
   <button class="nav-tab active" id="tab-mesas" onclick="showVista('mesas')">🪑 Mesas</button>
   <button class="nav-tab" id="tab-resumen" onclick="showVista('resumen')">💰 Caja</button>
-  <button class="nav-tab" id="tab-stock" onclick="showVista('stock')">📦 Stock</button>
+  <button class="nav-tab" id="tab-stock" onclick="showVista('stock')">💰 Gastos</button>
   <button class="nav-tab" id="tab-empleados" onclick="showVista('empleados')">👥 Turnos</button>
   <button class="nav-tab" id="tab-cumple" onclick="showVista('cumple')">🎂 Clientes</button>
   <button class="nav-tab" id="tab-reporte" onclick="showVista('reporte')">📊 Reporte</button>
@@ -465,14 +464,23 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 </div>
 
 <div class="vista" id="v-stock">
+  <!-- Balance de la semana: ingreso (caja) vs egreso (gastos/compras) -->
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-lbl">Ingresos semana</div><div class="metric-val" id="balance-ingreso">₲ 0</div></div>
+    <div class="metric"><div class="metric-lbl">Egresos semana</div><div class="metric-val" id="balance-egreso">₲ 0</div></div>
+  </div>
+  <div class="panel" style="margin-bottom:12px;">
+    <div class="panel-title">Balance semanal (ingreso − egreso)</div>
+    <div class="total-bar"><span class="total-lbl">Balance</span><span class="total-amt" id="balance-neto">₲ 0</span></div>
+  </div>
   <div class="stock-form">
-    <input type="text" id="stock-nombre-input" placeholder="Nombre del producto" />
-    <input type="number" id="stock-qty-input" placeholder="Cantidad" min="0" style="max-width:90px;" />
-    <button class="btn-add-stock" onclick="agregarStock()">+ Agregar</button>
+    <input type="text" id="gasto-desc-input" placeholder="Descripción del gasto (ej: compra de café, azúcar...)" />
+    <input type="number" id="gasto-monto-input" placeholder="Monto ₲" min="0" style="max-width:110px;" />
+    <button class="btn-add-stock" onclick="agregarGasto()">+ Agregar gasto</button>
   </div>
   <div class="panel">
-    <div class="panel-title">Inventario actual</div>
-    <div id="stock-lista"><p class="empty-msg">Cargando...</p></div>
+    <div class="panel-title">Gastos / compras de la semana</div>
+    <div id="gastos-lista"><p class="empty-msg">Cargando...</p></div>
   </div>
 </div>
 
@@ -835,17 +843,17 @@ firebase.initializeApp({
 const db = firebase.firestore();
 
 const MENU = [
-  {cat:'Cafés puros',items:[{n:'Expreso',p:8000},{n:'Americano',p:8000}]},
+  {cat:'Cafés puros',items:[{n:'Expreso',p:5000},{n:'Americano',p:5000}]},
   {cat:'Cafés suaves',items:[{n:'Café cortado',p:10000},{n:'Café con leche',p:7000}]},
   {cat:'Especiales',items:[{n:'Capuchino',p:12000},{n:'Mocaccino',p:12000},{n:'Estación Arroyos ★',p:5000}]},
   {cat:'Cocidos',items:[{n:'Cocido negro',p:5000},{n:'Cocido con leche',p:6500},{n:"Cocido maní ku'i",p:7500},{n:'Estación Esteros ★',p:5000}]},
   {cat:'Helados — cucurucho',items:[{n:'Helado 1 bocha',p:3000},{n:'Helado 2 bochas',p:5000}]},
   {cat:'Helados — vaso',items:[{n:'Helado vaso ¼ kg',p:10000},{n:'Helado por kilo',p:30000}]},
   {cat:'Paletas y otros',items:[{n:'Chupachus',p:1000},{n:'Paleta frutal',p:2000},{n:'Paleta cremosa',p:3000}]},
-  {cat:'Salados',items:[{n:'Chipa argolla',p:5000},{n:'Mbeju',p:5000},{n:'Pan tostado con aderezo',p:5000},{n:'Mixto de queso',p:5000},{n:'Mixto de jamón y queso',p:6500},{n:'Sándwich de jamón y queso',p:5000},{n:'Sándwich jamón, queso y huevo',p:7500},{n:'Sándwich de verdura',p:6000},{n:'Pan con kesú',p:5000},{n:'Pan relleno de jamón y queso',p:7500}]},
+  {cat:'Salados',items:[{n:'Chipa argolla',p:5000},{n:'Mbeju',p:5000},{n:'Pan tostado con aderezo',p:5000},{n:'Mixto de queso',p:5000},{n:'Mixto de jamón y queso',p:5000},{n:'Tarta de jamón y queso',p:5000},{n:'Tarta de pollo',p:6000},{n:'Sándwich de jamón y queso',p:5000},{n:'Sándwich jamón, queso y huevo',p:7500},{n:'Sándwich de verdura',p:6000},{n:'Pan con kesú',p:5000},{n:'Pan relleno de jamón y queso',p:7500}]},
   {cat:'Jugos naturales',items:[{n:'Licuado de naranja',p:5000},{n:'Licuado de durazno',p:8500},{n:'Licuado de frutilla',p:10000},{n:'Licuado de manzana',p:5000},{n:'Limonada',p:5000}]},
   {cat:'Bebidas calientes y frías',items:[{n:'Chocolatada caliente',p:12000},{n:'Chocolatada fría',p:10000},{n:'Tea',p:5000}]},
-  {cat:'Dulces',items:[{n:'Medialunas',p:8000},{n:'Bollos',p:6000},{n:'Pastafrola',p:8000},{n:'Pionono',p:6000},{n:'Marmolada',p:8000},{n:'Alfajor',p:8000},{n:'Brownie',p:11000},{n:'Cookies',p:11000}]},
+  {cat:'Dulces',items:[{n:'Medialunas',p:5000},{n:'Bollos',p:6000},{n:'Pastafrola',p:8000},{n:'Pionono',p:6000},{n:'Marmolada',p:8000},{n:'Alfajor',p:8000},{n:'Brownie',p:11000},{n:'Cookies',p:11000},{n:'Torta de miel',p:3500}]},
   {cat:'Tortas',items:[{n:'Torta de chocolate — porción',p:15000},{n:'Torta de chocolate — kilo',p:120000},{n:'Torta de vainilla — porción',p:12000},{n:'Torta de vainilla — kilo',p:80000}]},
 ];
 
@@ -864,7 +872,7 @@ function showVista(id){
   document.getElementById('v-'+id).classList.add('activa');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
   if(id==='resumen'){escucharVentas();escucharHistorialCaja();}
-  if(id==='stock')escucharStock();
+  if(id==='stock')escucharGastos();
   if(id==='empleados'){escucharEmpleados();renderEmpleados();}
   if(id==='cumple'){escucharClientes();}
   if(id==='reporte'){cargarReporte();}
@@ -1165,49 +1173,93 @@ function toggleDia(id, header){
   if(chev) chev.classList.toggle('abierto', abierto);
 }
 
-let stockEscuchando=false;
-function actualizarBadgeStock(items){
-  const bajos = items.filter(it=>it.cantidad<=3);
-  const badge = document.getElementById('stock-alerta-badge');
-  const cant  = document.getElementById('stock-alerta-cant');
-  if(bajos.length > 0){
-    badge.classList.add('show');
-    cant.textContent = bajos.length;
-    badge.title = 'Stock bajo: ' + bajos.map(it=>it.nombre+'('+it.cantidad+')').join(', ');
-  } else {
-    badge.classList.remove('show');
-  }
+// ── GASTOS (compras de la semana) + BALANCE INGRESO/EGRESO ──
+let gastosEscuchando=false;
+
+function inicioSemanaISO(){
+  // Reutiliza el mismo criterio de semana (lunes a hoy) que el Reporte semanal.
+  const lunes = getLunesDeEstaSemana();
+  const local = new Date(lunes.getTime() - lunes.getTimezoneOffset()*60000);
+  return local.toISOString().split('T')[0];
 }
 
-function escucharStock(){
-  if(stockEscuchando)return;stockEscuchando=true;
-  db.collection('stock').orderBy('nombre').onSnapshot(snap=>{
+function escucharGastos(){
+  if(gastosEscuchando)return;gastosEscuchando=true;
+  // Cualquier cambio en gastos, ventas del día o cierres de caja recalcula el balance.
+  db.collection('gastos').orderBy('creadoEn','desc').onSnapshot(snap=>{
     const items=snap.docs.map(d=>({id:d.id,...d.data()}));
-    // Actualizar badge en topbar siempre, aunque no esté en la vista stock
-    actualizarBadgeStock(items);
-    const el=document.getElementById('stock-lista');
-    el.innerHTML=items.length===0?'<p class="empty-msg">Sin productos. Agregá uno arriba.</p>':
-      items.map(it=>`<div class="stock-item">
-        <span class="stock-nombre">${it.nombre}</span>
-        <div class="stock-ctrl">
-          <button class="stock-btn" onclick="cambiarStock('${it.id}',-1)">-</button>
-          <span class="stock-qty ${it.cantidad<=3?'bajo':''}">${it.cantidad}</span>
-          <button class="stock-btn" onclick="cambiarStock('${it.id}',1)">+</button>
-        </div>
-        <span class="${it.cantidad<=3?'badge-stock-bajo':'badge-stock-ok'}">${it.cantidad<=3?'⚠ bajo':'✓ ok'}</span>
-      </div>`).join('');setSyncOk();},()=>setSyncErr());
+    const el=document.getElementById('gastos-lista');
+    if(el){
+      el.innerHTML=items.length===0?'<p class="empty-msg">Sin gastos registrados. Agregá uno arriba.</p>':
+        items.map(it=>`<div class="stock-item">
+          <span class="stock-nombre">${it.descripcion} <span style="color:var(--suave);font-size:11px;">(${it.fecha||''})</span></span>
+          <span class="stock-qty" style="min-width:auto;font-size:13px;">${fGs(it.monto||0)}</span>
+          <button class="stock-btn" onclick="borrarGasto('${it.id}')" title="Eliminar">🗑</button>
+        </div>`).join('');
+    }
+    calcularBalanceSemana();
+    setSyncOk();
+  },()=>setSyncErr());
+  db.collection('ventas').onSnapshot(()=>calcularBalanceSemana(),()=>{});
+  db.collection('historial_caja').onSnapshot(()=>calcularBalanceSemana(),()=>{});
 }
-function agregarStock(){
-  const nombre=document.getElementById('stock-nombre-input').value.trim();
-  const qty=parseInt(document.getElementById('stock-qty-input').value)||0;
-  if(!nombre){alert('Escribí el nombre del producto.');return;}
-  db.collection('stock').add({nombre,cantidad:qty}).then(()=>{
-    document.getElementById('stock-nombre-input').value='';
-    document.getElementById('stock-qty-input').value='';setSyncOk();}).catch(()=>setSyncErr());
+
+function agregarGasto(){
+  const descripcion=document.getElementById('gasto-desc-input').value.trim();
+  const monto=parseInt(document.getElementById('gasto-monto-input').value)||0;
+  if(!descripcion){alert('Escribí una descripción del gasto.');return;}
+  if(monto<=0){alert('Ingresá un monto válido.');return;}
+  const fecha=new Date().toLocaleDateString('es-PY');
+  const fechaISO=new Date().toISOString().split('T')[0];
+  db.collection('gastos').add({
+    descripcion, monto, fecha, fechaISO,
+    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>{
+    document.getElementById('gasto-desc-input').value='';
+    document.getElementById('gasto-monto-input').value='';
+    setSyncOk();
+  }).catch(()=>setSyncErr());
 }
-function cambiarStock(id,delta){
-  const ref=db.collection('stock').doc(id);
-  ref.get().then(snap=>{if(!snap.exists)return;const nueva=Math.max(0,(snap.data().cantidad||0)+delta);ref.update({cantidad:nueva});});
+
+function borrarGasto(id){
+  if(!confirm('¿Eliminar este gasto?'))return;
+  db.collection('gastos').doc(id).delete().then(setSyncOk).catch(()=>setSyncErr());
+}
+
+async function calcularBalanceSemana(){
+  try{
+    const lunesISO = inicioSemanaISO();
+    const [gastosSnap, ventasSnap, historialSnap] = await Promise.all([
+      db.collection('gastos').get(),
+      db.collection('ventas').get(),
+      db.collection('historial_caja').get()
+    ]);
+
+    // Egreso: gastos cargados esta semana.
+    const egreso = gastosSnap.docs
+      .map(d=>d.data())
+      .filter(g=>(g.fechaISO||'') >= lunesISO)
+      .reduce((s,g)=>s+(g.monto||0),0);
+
+    // Ingreso: cierres de caja de esta semana + ventas de hoy que aún no se cerraron.
+    const ingresoCierres = historialSnap.docs
+      .map(d=>d.data())
+      .filter(d=>(d.fechaISO||'') >= lunesISO)
+      .reduce((s,d)=>s+(d.total||0),0);
+    const ingresoHoy = ventasSnap.docs.reduce((s,d)=>s+((d.data().total)||0),0);
+    const ingreso = ingresoCierres + ingresoHoy;
+
+    const elIng=document.getElementById('balance-ingreso');
+    const elEg=document.getElementById('balance-egreso');
+    const elNeto=document.getElementById('balance-neto');
+    if(elIng) elIng.textContent = fGs(ingreso);
+    if(elEg) elEg.textContent = fGs(egreso);
+    if(elNeto){
+      const neto = ingreso - egreso;
+      elNeto.textContent = fGs(neto);
+      elNeto.style.color = neto < 0 ? 'var(--rojo)' : '';
+    }
+  }catch(e){ /* si falla el cálculo no rompe el resto del panel */ }
 }
 
 db.collection('playstation').doc('ps1').get().then(snap=>{
@@ -2506,7 +2558,7 @@ function entrarAlSistema(acceso) {
   aplicarRol(acceso.rol);
   // Arrancar el sistema
   escucharMesas();
-  escucharStock();
+  escucharGastos();
   escucharClientes();
   escucharReservas();
   escucharEventos();
