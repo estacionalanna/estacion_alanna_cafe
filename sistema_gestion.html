@@ -1393,11 +1393,14 @@ function agregarGasto(){
   comprimirImagenGasto(foto).then(blob=>{
     const path='tickets/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
     const ref=storage.ref(path);
-    return ref.put(blob).then(()=>ref.getDownloadURL());
+    const subida=ref.put(blob).then(()=>ref.getDownloadURL());
+    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error('tardó demasiado (revisá que Storage esté habilitado en Firebase)')),20000));
+    return Promise.race([subida,timeout]);
   }).then(url=>{
     guardar(url);
-  }).catch(()=>{
-    status.textContent='No se pudo subir la foto. Se guardó el gasto sin foto.';
+  }).catch(err=>{
+    const detalle=(err&&(err.code||err.message))||'error desconocido';
+    status.textContent='No se pudo subir la foto ('+detalle+'). Se guardó el gasto sin foto.';
     guardar(null);
   });
 }
