@@ -481,17 +481,17 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   </div>
   <div class="stock-form" style="flex-direction:column;align-items:stretch;">
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <input type="text" id="gasto-desc-input" placeholder="Descripción del gasto (ej: compra de café, azúcar...)" />
-      <input type="number" id="gasto-monto-input" placeholder="Monto ₲" min="0" style="max-width:110px;" />
+      <input type="text" id="gasto-desc-input" placeholder="Descripción del gasto (ej: compra de café, azúcar...)" oninput="guardarBorradorGasto()" />
+      <input type="number" id="gasto-monto-input" placeholder="Monto ₲" min="0" style="max-width:110px;" oninput="guardarBorradorGasto()" />
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
       <label for="gasto-foto-input" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:#FAF6ED;border:1px solid #E8DFC8;border-radius:8px;font-size:12px;font-weight:700;color:var(--texto-suave);cursor:pointer;">
         📷 <span id="gasto-foto-lbl">Foto del ticket (opcional)</span>
       </label>
-      <input type="file" id="gasto-foto-input" accept="image/*" capture="environment" style="display:none;" onchange="previewFotoGasto()">
+      <input type="file" id="gasto-foto-input" accept="image/*" style="display:none;" onchange="previewFotoGasto()">
       <img id="gasto-foto-preview" src="" style="display:none;width:38px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #E8DFC8;">
       <button type="button" id="gasto-foto-quitar" onclick="quitarFotoGasto()" style="display:none;background:none;border:1px solid #F7C1C1;color:#A32D2D;border-radius:8px;font-size:11px;padding:5px 9px;cursor:pointer;">quitar</button>
-      <button class="btn-add-stock" id="gasto-btn-agregar" onclick="agregarGasto()" style="margin-left:auto;">+ Agregar gasto</button>
+      <button type="button" class="btn-add-stock" id="gasto-btn-agregar" onclick="agregarGasto()" style="margin-left:auto;">+ Agregar gasto</button>
     </div>
     <div id="gasto-upload-status" style="font-size:11px;color:var(--texto-suave);margin-top:6px;min-height:14px;"></div>
   </div>
@@ -943,13 +943,15 @@ function setSyncErr(){document.getElementById('sync-dot').className='sync-dot er
 setInterval(()=>{const d=new Date();document.getElementById('hora').textContent=d.toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});},1000);
 document.getElementById('hora').textContent=new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
 
+const TABS_PRINCIPALES=['mesas','resumen','stock','empleados','cumple','reporte','torneo','cobro','reservas','eventos','comandas'];
 function showVista(id){
   ['mesas','pedido','ps','resumen','stock','empleados','cumple','reporte','torneo','cobro','reservas','eventos','comandas'].forEach(v=>document.getElementById('v-'+v).classList.remove('activa'));
-  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','reservas','eventos','comandas'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
+  ['mesas','resumen','stock','empleados','cumple','reporte','torneo','cobro','reservas','eventos','comandas'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.remove('active');});
   document.getElementById('v-'+id).classList.add('activa');
   const tab=document.getElementById('tab-'+id);if(tab)tab.classList.add('active');
+  if(TABS_PRINCIPALES.includes(id)) sessionStorage.setItem('ea_ultima_vista', id);
   if(id==='resumen'){escucharVentas();escucharHistorialCaja();}
-  if(id==='stock')escucharGastos();
+  if(id==='stock'){escucharGastos();restaurarBorradorGasto();}
   if(id==='empleados'){escucharEmpleados();renderEmpleados();}
   if(id==='cumple'){escucharClientes();}
   if(id==='reporte'){cargarReporte();}
@@ -1313,6 +1315,34 @@ function verTicketGasto(url){
   window.open(url,'_blank');
 }
 
+// Guarda lo que se va escribiendo en el form de gastos por si el celular
+// recarga la página al abrir la cámara (pasa en algunos equipos con poca memoria).
+function guardarBorradorGasto(){
+  const descripcion=document.getElementById('gasto-desc-input').value;
+  const monto=document.getElementById('gasto-monto-input').value;
+  if(descripcion||monto){
+    sessionStorage.setItem('ea_gasto_borrador', JSON.stringify({descripcion,monto}));
+  } else {
+    sessionStorage.removeItem('ea_gasto_borrador');
+  }
+}
+
+function restaurarBorradorGasto(){
+  const raw=sessionStorage.getItem('ea_gasto_borrador');
+  if(!raw)return;
+  try{
+    const {descripcion,monto}=JSON.parse(raw);
+    const descInput=document.getElementById('gasto-desc-input');
+    const montoInput=document.getElementById('gasto-monto-input');
+    if(descInput && !descInput.value && descripcion) descInput.value=descripcion;
+    if(montoInput && !montoInput.value && monto) montoInput.value=monto;
+  }catch(e){}
+}
+
+function limpiarBorradorGasto(){
+  sessionStorage.removeItem('ea_gasto_borrador');
+}
+
 function comprimirImagenGasto(file){
   return new Promise((resolve,reject)=>{
     const img=new Image();
@@ -1352,6 +1382,7 @@ function agregarGasto(){
       document.getElementById('gasto-desc-input').value='';
       document.getElementById('gasto-monto-input').value='';
       quitarFotoGasto();
+      limpiarBorradorGasto();
       status.textContent='';
       btn.disabled=false;
       setSyncOk();
@@ -2805,6 +2836,13 @@ function entrarAlSistema(acceso) {
   escucharReservas();
   escucharEventos();
   escucharComandas();
+  // Si la página se recargó a mitad de algo (ej: al usar la cámara del celular),
+  // volvemos a la pestaña donde estaba en vez de reiniciar en Mesas.
+  const ultimaVista = sessionStorage.getItem('ea_ultima_vista');
+  const tabsPermitidos = TABS_ROL[acceso.rol]||[];
+  if(ultimaVista && ultimaVista!=='mesas' && tabsPermitidos.includes(ultimaVista) && document.getElementById('v-'+ultimaVista)){
+    showVista(ultimaVista);
+  }
 }
 
 function aplicarRol(rol) {
