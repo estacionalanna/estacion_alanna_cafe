@@ -479,10 +479,21 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
     <div class="panel-title">Balance semanal (ingreso − egreso)</div>
     <div class="total-bar"><span class="total-lbl">Balance</span><span class="total-amt" id="balance-neto">₲ 0</span></div>
   </div>
-  <div class="stock-form">
-    <input type="text" id="gasto-desc-input" placeholder="Descripción del gasto (ej: compra de café, azúcar...)" />
-    <input type="number" id="gasto-monto-input" placeholder="Monto ₲" min="0" style="max-width:110px;" />
-    <button class="btn-add-stock" onclick="agregarGasto()">+ Agregar gasto</button>
+  <div class="stock-form" style="flex-direction:column;align-items:stretch;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input type="text" id="gasto-desc-input" placeholder="Descripción del gasto (ej: compra de café, azúcar...)" />
+      <input type="number" id="gasto-monto-input" placeholder="Monto ₲" min="0" style="max-width:110px;" />
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+      <label for="gasto-foto-input" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:#FAF6ED;border:1px solid #E8DFC8;border-radius:8px;font-size:12px;font-weight:700;color:var(--texto-suave);cursor:pointer;">
+        📷 <span id="gasto-foto-lbl">Foto del ticket (opcional)</span>
+      </label>
+      <input type="file" id="gasto-foto-input" accept="image/*" capture="environment" style="display:none;" onchange="previewFotoGasto()">
+      <img id="gasto-foto-preview" src="" style="display:none;width:38px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #E8DFC8;">
+      <button type="button" id="gasto-foto-quitar" onclick="quitarFotoGasto()" style="display:none;background:none;border:1px solid #F7C1C1;color:#A32D2D;border-radius:8px;font-size:11px;padding:5px 9px;cursor:pointer;">quitar</button>
+      <button class="btn-add-stock" id="gasto-btn-agregar" onclick="agregarGasto()" style="margin-left:auto;">+ Agregar gasto</button>
+    </div>
+    <div id="gasto-upload-status" style="font-size:11px;color:var(--texto-suave);margin-top:6px;min-height:14px;"></div>
   </div>
   <div class="panel">
     <div class="panel-title">Gastos / compras de la semana</div>
@@ -895,6 +906,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8",
@@ -905,6 +917,7 @@ firebase.initializeApp({
   appId:"1:776786709550:web:b5b77a46abdbfb363423bf"
 });
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 const MENU = [
   {cat:'Cafés puros',items:[{n:'Expreso',p:5000},{n:'Americano',p:5000}]},
@@ -1257,6 +1270,7 @@ function escucharGastos(){
     if(el){
       el.innerHTML=items.length===0?'<p class="empty-msg">Sin gastos registrados. Agregá uno arriba.</p>':
         items.map(it=>`<div class="stock-item">
+          ${it.ticketUrl?`<img src="${it.ticketUrl}" onclick="verTicketGasto('${it.ticketUrl}')" title="Ver ticket" style="width:32px;height:32px;object-fit:cover;border-radius:6px;border:1px solid #E8DFC8;cursor:pointer;flex-shrink:0;">`:'<span style="width:32px;flex-shrink:0;"></span>'}
           <span class="stock-nombre">${it.descripcion} <span style="color:var(--suave);font-size:11px;">(${it.fecha||''})</span></span>
           <span class="stock-qty" style="min-width:auto;font-size:13px;">${fGs(it.monto||0)}</span>
           <button class="stock-btn" onclick="borrarGasto('${it.id}')" title="Eliminar">🗑</button>
@@ -1269,6 +1283,57 @@ function escucharGastos(){
   db.collection('historial_caja').onSnapshot(()=>calcularBalanceSemana(),()=>{});
 }
 
+let gastoFotoFile=null;
+
+function previewFotoGasto(){
+  const input=document.getElementById('gasto-foto-input');
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  gastoFotoFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('gasto-foto-preview');
+    img.src=e.target.result;
+    img.style.display='inline-block';
+    document.getElementById('gasto-foto-quitar').style.display='inline-block';
+    document.getElementById('gasto-foto-lbl').textContent='Foto lista ✓';
+  };
+  reader.readAsDataURL(file);
+}
+
+function quitarFotoGasto(){
+  gastoFotoFile=null;
+  document.getElementById('gasto-foto-input').value='';
+  document.getElementById('gasto-foto-preview').style.display='none';
+  document.getElementById('gasto-foto-quitar').style.display='none';
+  document.getElementById('gasto-foto-lbl').textContent='Foto del ticket (opcional)';
+}
+
+function verTicketGasto(url){
+  window.open(url,'_blank');
+}
+
+function comprimirImagenGasto(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    const reader=new FileReader();
+    reader.onload=e=>{ img.src=e.target.result; };
+    reader.onerror=reject;
+    img.onload=()=>{
+      const maxDim=1280;
+      let {width,height}=img;
+      if(width>height && width>maxDim){ height=Math.round(height*maxDim/width); width=maxDim; }
+      else if(height>maxDim){ width=Math.round(width*maxDim/height); height=maxDim; }
+      const canvas=document.createElement('canvas');
+      canvas.width=width; canvas.height=height;
+      canvas.getContext('2d').drawImage(img,0,0,width,height);
+      canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('No se pudo procesar la imagen')),'image/jpeg',0.72);
+    };
+    img.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function agregarGasto(){
   const descripcion=document.getElementById('gasto-desc-input').value.trim();
   const monto=parseInt(document.getElementById('gasto-monto-input').value)||0;
@@ -1276,19 +1341,46 @@ function agregarGasto(){
   if(monto<=0){alert('Ingresá un monto válido.');return;}
   const fecha=new Date().toLocaleDateString('es-PY');
   const fechaISO=new Date().toISOString().split('T')[0];
-  db.collection('gastos').add({
-    descripcion, monto, fecha, fechaISO,
-    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(()=>{
-    document.getElementById('gasto-desc-input').value='';
-    document.getElementById('gasto-monto-input').value='';
-    setSyncOk();
-  }).catch(()=>setSyncErr());
+  const btn=document.getElementById('gasto-btn-agregar');
+  const status=document.getElementById('gasto-upload-status');
+  const foto=gastoFotoFile;
+  btn.disabled=true;
+  const guardar=(ticketUrl)=>{
+    const data={descripcion, monto, fecha, fechaISO, creadoEn: firebase.firestore.FieldValue.serverTimestamp()};
+    if(ticketUrl) data.ticketUrl=ticketUrl;
+    db.collection('gastos').add(data).then(()=>{
+      document.getElementById('gasto-desc-input').value='';
+      document.getElementById('gasto-monto-input').value='';
+      quitarFotoGasto();
+      status.textContent='';
+      btn.disabled=false;
+      setSyncOk();
+    }).catch(()=>{ status.textContent='Error al guardar el gasto.'; btn.disabled=false; setSyncErr(); });
+  };
+  if(!foto){ guardar(null); return; }
+  status.textContent='Subiendo foto del ticket...';
+  comprimirImagenGasto(foto).then(blob=>{
+    const path='tickets/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+    const ref=storage.ref(path);
+    return ref.put(blob).then(()=>ref.getDownloadURL());
+  }).then(url=>{
+    guardar(url);
+  }).catch(()=>{
+    status.textContent='No se pudo subir la foto. Se guardó el gasto sin foto.';
+    guardar(null);
+  });
 }
 
 function borrarGasto(id){
   if(!confirm('¿Eliminar este gasto?'))return;
-  db.collection('gastos').doc(id).delete().then(setSyncOk).catch(()=>setSyncErr());
+  const ref=db.collection('gastos').doc(id);
+  ref.get().then(snap=>{
+    const ticketUrl=snap.exists?snap.data().ticketUrl:null;
+    if(ticketUrl){
+      storage.refFromURL(ticketUrl).delete().catch(()=>{});
+    }
+    return ref.delete();
+  }).then(setSyncOk).catch(()=>setSyncErr());
 }
 
 async function calcularBalanceSemana(){
