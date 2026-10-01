@@ -742,6 +742,21 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 </div>
 
 <!-- ══════════════════════════════════════════
+     MODAL CÓDIGO DE SELLO (fidelidad)
+══════════════════════════════════════════ -->
+<div id="modal-codigo-sello" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:700;align-items:center;justify-content:center;padding:1.2rem;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:340px;padding:22px 18px;text-align:center;">
+    <div style="font-size:34px;margin-bottom:4px;">🎁</div>
+    <div style="font-size:15px;font-weight:700;color:#3B2A1A;margin-bottom:2px;">¡Combo! Le toca un sello</div>
+    <div style="font-size:12px;color:#7a6a55;margin-bottom:12px;">Pasale este código al cliente</div>
+    <div id="codigo-sello-valor" style="font-size:34px;font-weight:700;letter-spacing:6px;color:#3B2A1A;background:#FAEEDA;border:2px dashed #EF9F27;border-radius:12px;padding:12px 6px;margin-bottom:10px;"></div>
+    <div style="font-size:11px;color:#7a6a55;margin-bottom:14px;">Lo sube en la web de fidelidad con su teléfono. Vale 1 sola vez y vence en 7 días.</div>
+    <button onclick="copiarCodigoSello(this)" style="width:100%;padding:11px;background:#FAEEDA;color:#854F0B;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;">Copiar código</button>
+    <button onclick="cerrarModalCodigoSello()" style="width:100%;padding:11px;background:#3B2A1A;color:#FAC775;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Listo</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      MODAL CUMPLEAÑOS
 ══════════════════════════════════════════ -->
 <div class="modal-cumple-overlay" id="modal-cumple">
@@ -2440,7 +2455,69 @@ function confirmarPago(enviarWsp) {
   }
 }
 
-function generarTicketWsp(mesa, pedido, total, metodo, hora, tel){
+// ══════════════════════════════════════════
+// FIDELIDAD — código de sello por combo
+// ══════════════════════════════════════════
+// Un "combo" = al menos una bebida de CATS_BEBIDA + al menos un producto de CATS_COMIDA.
+// Para cambiar la regla, editá solo estas dos listas.
+const CATS_BEBIDA = ['Cafés puros','Cafés suaves','Especiales','Cocidos'];
+const CATS_COMIDA = ['Salados'];
+const URL_FIDELIDAD = 'https://estacionalanna.github.io/estacion_alanna_cafe/fidelidad.html';
+const DIAS_VENCE_CODIGO = 7;
+
+function esCombo(pedido){
+  let hayBebida = false, hayComida = false;
+  Object.entries(pedido || {}).forEach(([nombre, q])=>{
+    if(!(q > 0)) return;
+    MENU.forEach(c=>{
+      if(c.items.some(it=>it.n === nombre)){
+        if(CATS_BEBIDA.includes(c.cat)) hayBebida = true;
+        if(CATS_COMIDA.includes(c.cat)) hayComida = true;
+      }
+    });
+  });
+  return hayBebida && hayComida;
+}
+
+// Sin 0/O/1/I para que no se confundan al dictarlos
+function nuevoCodigoSello(){
+  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let cod = '';
+  for(let i=0;i<6;i++) cod += letras.charAt(Math.floor(Math.random()*letras.length));
+  return cod;
+}
+
+// Guarda el código en Firestore (colección "codigos") y lo devuelve. Si no es combo, devuelve null.
+function crearCodigoSelloSiCombo(pedido, origen){
+  if(!esCombo(pedido)) return null;
+  const codigo = nuevoCodigoSello();
+  const vence = new Date(); vence.setDate(vence.getDate() + DIAS_VENCE_CODIGO);
+  db.collection('codigos').doc(codigo).set({
+    estado: 'activo',
+    creadoEn: new Date().toISOString(),
+    vence: vence.toISOString(),
+    origen: origen,
+    detalle: Object.entries(pedido).filter(([,q])=>q>0).map(([n,q])=>n+(q>1?' x'+q:'')).join(', ')
+  }).catch(()=>setSyncErr());
+  return codigo;
+}
+
+function mostrarModalCodigoSello(codigo){
+  document.getElementById('codigo-sello-valor').textContent = codigo;
+  document.getElementById('modal-codigo-sello').style.display = 'flex';
+}
+function cerrarModalCodigoSello(){
+  document.getElementById('modal-codigo-sello').style.display = 'none';
+}
+function copiarCodigoSello(btn){
+  const cod = document.getElementById('codigo-sello-valor').textContent;
+  navigator.clipboard.writeText(cod).then(()=>{
+    btn.textContent = '✓ Copiado';
+    setTimeout(()=>{ btn.textContent = 'Copiar código'; }, 2000);
+  });
+}
+
+function generarTicketWsp(mesa, pedido, total, metodo, hora, tel, codigo){
   if(!tel) return;
   const fecha = new Date().toLocaleDateString('es-PY');
   const lineas = Object.entries(pedido)
@@ -2462,6 +2539,13 @@ function generarTicketWsp(mesa, pedido, total, metodo, hora, tel){
     `💰 *TOTAL: ${fGs(total)}*\n` +
     `💳 Método: ${metodo}\n` +
     `━━━━━━━━━━━━━━━━\n` +
+    (codigo
+      ? `🎁 *¡Sumaste un sello!*\n` +
+        `Tu código: *${codigo}*\n` +
+        `Subilo acá con tu número: ${URL_FIDELIDAD}\n` +
+        `(vale 1 vez, vence en ${DIAS_VENCE_CODIGO} días)\n` +
+        `━━━━━━━━━━━━━━━━\n`
+      : ``) +
     `¡Gracias por tu visita! 🙌\n` +
     `Volvé pronto a Estación Alanna ☕`;
 
@@ -2484,38 +2568,47 @@ function cobrarMesaConMetodo(metodo, tel) {
   if (items === 0) { volverMesas(); return; }
   const hora    = new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
   const detalle = Object.entries(d.pedido).map(([n,q])=>n+(q>1?' x'+q:'')).join(', ');
+  const codigoSello = crearCodigoSelloSiCombo(d.pedido, 'Mesa ' + mesaActual);
   db.collection('ventas').add({
     hora, detalle, total,
     mesa: 'Mesa ' + mesaActual,
     fecha: new Date().toLocaleDateString('es-PY'),
-    metodoPago: metodo
+    metodoPago: metodo,
+    codigoSello: codigoSello || null
   });
   // Enviar ticket por WhatsApp si tiene tel
-  if(tel) generarTicketWsp('Mesa '+mesaActual, d.pedido, total, metodo, hora, tel);
+  if(tel) generarTicketWsp('Mesa '+mesaActual, d.pedido, total, metodo, hora, tel, codigoSello);
   db.collection('mesas').doc('mesa'+mesaActual).set({pedido:{}});
   mesasData[mesaActual] = {pedido:{}};
   volverMesas();
+  // Sin WhatsApp: mostrar el código en pantalla para que el cajero se lo diga al cliente
+  if(codigoSello && !tel) mostrarModalCodigoSello(codigoSello);
 }
 
 function cobrarPSConMetodo(metodo, tel) {
+  let codigoSelloPS = null;
   const total = calcTotal(psData.pedido || {});
   const items = Object.values(psData.pedido || {}).reduce((a,b)=>a+b, 0);
   if (items > 0) {
     const hora    = new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'});
     const detalle = Object.entries(psData.pedido).map(([n,q])=>n+(q>1?' x'+q:'')).join(', ');
+    codigoSelloPS = crearCodigoSelloSiCombo(psData.pedido, 'PlayStation');
     db.collection('ventas').add({
       hora, detalle, total,
       mesa: 'PlayStation',
       fecha: new Date().toLocaleDateString('es-PY'),
-      metodoPago: metodo
+      metodoPago: metodo,
+      codigoSello: codigoSelloPS || null
     });
     // Enviar ticket por WhatsApp si tiene tel
-    if(tel) generarTicketWsp('PlayStation', psData.pedido, total, metodo, hora, tel);
+    if(tel) generarTicketWsp('PlayStation', psData.pedido, total, metodo, hora, tel, codigoSelloPS);
   }
   detenerPS();
   psData.pedido = {};
   db.collection('playstation').doc('ps1').set({activa:false,segundos:0,pedido:{}});
   volverMesas();
+  // Sin WhatsApp: mostrar el código en pantalla para que el cajero se lo diga al cliente
+  if(codigoSelloPS && !tel) mostrarModalCodigoSello(codigoSelloPS);
 }
 
 // Cerrar tocando el overlay
