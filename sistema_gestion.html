@@ -382,7 +382,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
   <button class="nav-tab" id="tab-resumen" onclick="showVista('resumen')">💰 Caja</button>
   <button class="nav-tab" id="tab-stock" onclick="showVista('stock')">💰 Gastos</button>
   <button class="nav-tab" id="tab-empleados" onclick="showVista('empleados')">👥 Turnos</button>
-  <button class="nav-tab" id="tab-cumple" onclick="showVista('cumple')">🎂 Clientes</button>
+  <button class="nav-tab" id="tab-cumple" onclick="showVista('cumple')">🎂 Clientes<span id="badge-premios" style="display:none;margin-left:4px;background:#E24B4A;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;"></span></button>
   <button class="nav-tab" id="tab-reporte" onclick="showVista('reporte')">📊 Reporte</button>
   <button class="nav-tab" id="tab-torneo" onclick="showVista('torneo')">🏆 Torneo</button>
   <button class="nav-tab" id="tab-cobro" onclick="showVista('cobro')">🧾 Cobro</button>
@@ -515,6 +515,25 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
     <div style="font-size:14px;font-weight:700;color:#854F0B;margin-bottom:4px;">¡Cumpleaños hoy!</div>
     <div id="cumple-alerta-nombres" style="font-size:13px;color:#3B2A1A;line-height:1.7;"></div>
   </div>
+  <!-- ── FIDELIDAD: premios pendientes ── -->
+  <div class="panel" style="margin-bottom:10px;">
+    <div class="panel-title">🎁 Premios de fidelidad pendientes</div>
+    <div style="display:flex;gap:6px;margin:8px 0 10px;">
+      <input type="text" id="premio-codigo" placeholder="Código del cliente (ej: DFFFUB)" maxlength="12" autocapitalize="characters" autocomplete="off" style="flex:1;padding:9px 12px;border:1px solid #E8DFC8;border-radius:8px;font-size:13px;background:#FAF6ED;font-family:'Lato',sans-serif;text-transform:uppercase;letter-spacing:2px;">
+      <button onclick="canjearPorCodigo()" style="padding:9px 14px;background:#3B2A1A;color:#FAC775;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Canjear</button>
+    </div>
+    <div id="premios-pendientes-lista"><p class="empty-msg">No hay premios pendientes</p></div>
+  </div>
+
+  <!-- ── FIDELIDAD: socios inscriptos desde la web ── -->
+  <div class="panel" style="margin-bottom:10px;">
+    <div class="panel-title">⭐ Socios de fidelidad (<span id="socios-cant">0</span>)</div>
+    <div style="margin:8px 0 10px;">
+      <input type="text" id="soc-buscar" placeholder="🔍 Buscar socio..." oninput="renderSocios()" style="width:100%;padding:8px 12px;border:1px solid #E8DFC8;border-radius:8px;font-size:13px;background:#FAF6ED;font-family:'Lato',sans-serif;">
+    </div>
+    <div id="socios-lista"><p class="empty-msg">Todavía no hay socios inscriptos</p></div>
+  </div>
+
   <div class="panel" style="margin-bottom:10px;">
     <div class="panel-title">Agregar cliente</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
@@ -2259,6 +2278,141 @@ function eliminarCliente(id){
 }
 
 // ══════════════════════════════════════════════
+// FIDELIDAD — premios pendientes y socios
+// ══════════════════════════════════════════════
+// Los nombres vienen de la web pública: se escapan para que nadie pueda meter código en tu sistema.
+function escFid(t){
+  return String(t==null?'':t).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function fechaCortaFid(iso){
+  return new Date(iso).toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit'});
+}
+
+let premiosPend = [];
+let premiosEscuchando = false;
+
+function escucharPremios(){
+  if(premiosEscuchando) return;
+  premiosEscuchando = true;
+  db.collection('premios').where('estado','==','pendiente').onSnapshot(snap=>{
+    premiosPend = snap.docs.map(d=>({id:d.id,...d.data()}));
+    premiosPend.sort((a,b)=>String(b.creadoEn).localeCompare(String(a.creadoEn)));
+    renderPremios(); setSyncOk();
+  }, ()=>setSyncErr());
+}
+
+function renderPremios(){
+  const ahora = new Date();
+  // Globito en la pestaña: premios vigentes que todavía no avisaste por WhatsApp
+  const sinAvisar = premiosPend.filter(p=>!p.avisado && new Date(p.vence) >= ahora).length;
+  const badge = document.getElementById('badge-premios');
+  if(badge){ badge.textContent = sinAvisar; badge.style.display = sinAvisar>0 ? 'inline-block' : 'none'; }
+
+  const el = document.getElementById('premios-pendientes-lista');
+  if(!el) return;
+  if(premiosPend.length===0){ el.innerHTML='<p class="empty-msg">No hay premios pendientes</p>'; return; }
+  el.innerHTML = premiosPend.map(p=>{
+    const vencido = new Date(p.vence) < ahora;
+    const primerNombre = escFid((p.nombre||'').split(' ')[0]);
+    const msg = encodeURIComponent(
+      p.tipo==='cumple'
+        ? 'Hola '+(p.nombre||'').split(' ')[0]+'! 🎂 ¡Feliz cumpleaños de parte de Estación Alanna Café! Te regalamos una consumición gratis. Tu código: '+p.id+'. Mostralo en caja hasta el '+fechaCortaFid(p.vence)+'. ¡Te esperamos! ☕🎉'
+        : 'Hola '+(p.nombre||'').split(' ')[0]+'! 🎁 ¡Felicitaciones! Completaste tus 10 combos en Estación Alanna Café y ganaste una consumición gratis. Tu código: '+p.id+'. Mostralo en caja hasta el '+fechaCortaFid(p.vence)+'. ¡Te esperamos! ☕🎉'
+    );
+    const acciones = vencido
+      ? `<button class="btn-eliminar" onclick="descartarPremio('${escFid(p.id)}')">🗑 Descartar (vencido)</button>`
+      : `${p.wa?`<a class="btn-wsp" href="https://wa.me/${escFid(p.wa)}?text=${msg}" target="_blank" rel="noopener" onclick="marcarAvisado('${escFid(p.id)}')">💬 ${p.avisado?'Avisar de nuevo':'Avisar por WhatsApp'}</a>`:''}
+         <button onclick="canjearPremio('${escFid(p.id)}')" style="padding:8px 12px;background:#3B6D11;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✅ Canjear</button>`;
+    return `<div class="cli-card ${vencido?'':'cumple-hoy'}">
+      <div class="cli-top"><span class="cli-nombre">${escFid(p.nombre)||'Cliente'}</span>
+        <span class="cli-badge-cumple">${p.tipo==='cumple'?'🎂 Cumple':'🎁 10 combos'}</span>
+      </div>
+      <div class="cli-info"><span>🔑 <strong style="letter-spacing:2px;">${escFid(p.id)}</strong></span><span>⏳ ${vencido?'venció el ':'vence el '}${fechaCortaFid(p.vence)}</span>${p.avisado?'<span>✓ avisado</span>':''}</div>
+      <div class="cli-actions">${acciones}</div>
+    </div>`;
+  }).join('');
+}
+
+function marcarAvisado(id){
+  db.collection('premios').doc(id).update({avisado:true, avisadoEn:new Date().toISOString()}).catch(()=>setSyncErr());
+}
+
+function descartarPremio(id){
+  if(!confirm('¿Descartar este premio vencido?')) return;
+  db.collection('premios').doc(id).update({estado:'vencido'}).catch(()=>setSyncErr());
+}
+
+// Entrega el premio. La transacción evita canjearlo dos veces (por ejemplo desde dos celulares).
+function canjearPremio(id){
+  const p = premiosPend.find(x=>x.id===id);
+  if(!p) return;
+  if(new Date(p.vence) < new Date()){ alert('Ese premio ya venció.'); return; }
+  if(!confirm('¿Entregar la consumición gratis a '+(p.nombre||'este cliente')+'?')) return;
+  ejecutarCanje(id);
+}
+
+function ejecutarCanje(id){
+  const ref = db.collection('premios').doc(id);
+  db.runTransaction(async tx=>{
+    const s = await tx.get(ref);
+    if(!s.exists || s.data().estado!=='pendiente') throw new Error('YA_CANJEADO');
+    tx.update(ref,{estado:'canjeado', canjeadoEn:new Date().toISOString()});
+  }).then(()=>setSyncOk()).catch(e=>{
+    if(e && e.message==='YA_CANJEADO') alert('Ese premio ya fue canjeado.');
+    else setSyncErr();
+  });
+}
+
+// Canje escribiendo el código que muestra el cliente
+async function canjearPorCodigo(){
+  const input = document.getElementById('premio-codigo');
+  const codigo = input.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(codigo.length!==6){ alert('El código tiene 6 letras o números.'); return; }
+  try{
+    const snap = await db.collection('premios').doc(codigo).get();
+    if(!snap.exists){ alert('Ese código no existe.'); return; }
+    const p = snap.data();
+    if(p.estado==='canjeado'){ alert('Ese premio ya fue canjeado.'); return; }
+    if(p.estado!=='pendiente'){ alert('Ese premio ya no está disponible.'); return; }
+    if(new Date(p.vence) < new Date()){ alert('Ese premio venció el '+fechaCortaFid(p.vence)+'.'); return; }
+    if(!confirm('Premio de '+(p.nombre||'cliente')+'. ¿Entregar la consumición gratis?')) return;
+    input.value='';
+    ejecutarCanje(codigo);
+  } catch(e){ setSyncErr(); }
+}
+
+let todosSocios = [];
+let sociosEscuchando = false;
+
+function escucharSocios(){
+  if(sociosEscuchando) return;
+  sociosEscuchando = true;
+  db.collection('socios').orderBy('nombre').onSnapshot(snap=>{
+    todosSocios = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderSocios(); setSyncOk();
+  }, ()=>setSyncErr());
+}
+
+function renderSocios(){
+  const cant = document.getElementById('socios-cant');
+  if(cant) cant.textContent = todosSocios.length;
+  const el = document.getElementById('socios-lista');
+  if(!el) return;
+  const q = ((document.getElementById('soc-buscar')||{}).value||'').toLowerCase();
+  const lista = todosSocios.filter(s=>!q || (s.nombre||'').toLowerCase().includes(q) || (s.telefono||'').includes(q));
+  if(lista.length===0){ el.innerHTML='<p class="empty-msg">'+(todosSocios.length?'Sin resultados':'Todavía no hay socios inscriptos')+'</p>'; return; }
+  el.innerHTML = lista.map(s=>{
+    const n = s.sellos||0;
+    return `<div class="cli-card">
+      <div class="cli-top"><span class="cli-nombre">${escFid(s.nombre)}</span>
+        <span class="cli-badge-pronto">${n}/10 sellos</span>
+      </div>
+      <div class="cli-info"><span>📱 ${escFid(s.telefono)}</span>${s.fecha?'<span>📅 '+escFid(formatFecha(s.fecha))+'</span>':''}<span>🎁 ${s.premiosGanados||0} premios</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
 // EMPLEADOS
 // ══════════════════════════════════════════════
 const EMPLEADOS = [{id:'emp1', nombre:'Empleado 1'}, {id:'emp2', nombre:'Empleado 2'}];
@@ -2929,6 +3083,8 @@ function entrarAlSistema(acceso) {
   escucharMesas();
   escucharGastos();
   escucharClientes();
+  escucharPremios();
+  escucharSocios();
   escucharReservas();
   escucharEventos();
   escucharComandas();
