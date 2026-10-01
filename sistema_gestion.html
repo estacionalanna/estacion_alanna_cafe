@@ -941,6 +941,7 @@ body{font-family:'Lato',sans-serif;background:#F4F0E8;min-height:100vh;}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8",
@@ -3018,12 +3019,20 @@ function irANotificaciones(){
 }
 
 // ══════════════════════════════════════════
-// LOGIN CON PIN
+// LOGIN CON PIN (Firebase Authentication)
 // ══════════════════════════════════════════
-const PINS = {
-  '202625': { rol: 'admin',  label: '👑 Administrador' },
-  '202686': { rol: 'socio',  label: '🤝 Socio'         }
-};
+// El PIN de 6 dígitos es la contraseña de una cuenta de Firebase. Ya no está escrito en el código:
+// Firebase lo verifica en sus servidores. Los PIN se cambian desde la consola de Firebase
+// (Authentication → Users → ⋮ → Restablecer contraseña / Eliminar y volver a crear).
+// Estos correos son solo identificadores (llegan a la casilla de AlannaSoft si alguien pide restablecer).
+const CUENTAS = [
+  { email: 'alannasoft.py+admin@gmail.com', rol: 'admin', label: '👑 Administrador' },
+  { email: 'alannasoft.py+socio@gmail.com', rol: 'socio', label: '🤝 Socio'         }
+];
+
+const auth = firebase.auth();
+// La sesión dura mientras la pestaña esté abierta (igual que antes): al cerrarla, pide el PIN de nuevo.
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
 
 // Tabs visibles por rol
 const TABS_ROL = {
@@ -3033,15 +3042,18 @@ const TABS_ROL = {
 
 let pinActual = '';
 let rolActual = null;
+let verificandoPin = false;
+let sistemaEntrado = false;
 
 function tecla(num) {
-  if(pinActual.length >= 6) return;
+  if(pinActual.length >= 6 || verificandoPin) return;
   pinActual += num;
   actualizarDots();
   if(pinActual.length === 6) setTimeout(verificarPin, 150);
 }
 
 function borrarPin() {
+  if(verificandoPin) return;
   pinActual = pinActual.slice(0,-1);
   actualizarDots();
   document.getElementById('login-error').textContent = '';
@@ -3053,21 +3065,36 @@ function actualizarDots() {
   }
 }
 
-function verificarPin() {
-  const acceso = PINS[pinActual];
-  if(acceso) {
-    rolActual = acceso.rol;
-    // Guardar sesión en sessionStorage
-    sessionStorage.setItem('ea_rol', rolActual);
-    sessionStorage.setItem('ea_pin_ok', '1');
-    entrarAlSistema(acceso);
-  } else {
-    document.getElementById('login-error').textContent = '❌ PIN incorrecto, intentá de nuevo';
-    pinActual = '';
-    actualizarDots();
-    // Vibrar si disponible
-    if(navigator.vibrate) navigator.vibrate([100,50,100]);
+// Prueba el PIN con cada cuenta. Si alguna lo acepta, onAuthStateChanged (abajo) abre el sistema.
+async function verificarPin() {
+  if(verificandoPin) return;
+  verificandoPin = true;
+  const err = document.getElementById('login-error');
+  err.textContent = 'Verificando...';
+  const pin = pinActual;
+  let motivo = 'pin';
+  for(const cuenta of CUENTAS){
+    try{
+      await auth.signInWithEmailAndPassword(cuenta.email, pin);
+      err.textContent = '';
+      pinActual = '';
+      actualizarDots();
+      verificandoPin = false;
+      return;
+    } catch(e){
+      if(e && e.code === 'auth/too-many-requests'){ motivo = 'bloqueo'; break; }
+      if(e && e.code === 'auth/network-request-failed'){ motivo = 'red'; break; }
+    }
   }
+  err.textContent =
+    motivo === 'bloqueo' ? '⏳ Demasiados intentos. Esperá unos minutos y probá de nuevo.' :
+    motivo === 'red'     ? '📶 Sin conexión. Revisá tu internet e intentá de nuevo.' :
+                           '❌ PIN incorrecto, intentá de nuevo';
+  pinActual = '';
+  actualizarDots();
+  // Vibrar si disponible
+  if(navigator.vibrate) navigator.vibrate([100,50,100]);
+  verificandoPin = false;
 }
 
 function entrarAlSistema(acceso) {
@@ -3107,29 +3134,28 @@ function aplicarRol(rol) {
 }
 
 function cerrarSesion() {
-  sessionStorage.removeItem('ea_rol');
-  sessionStorage.removeItem('ea_pin_ok');
-  rolActual = null;
-  pinActual = '';
-  actualizarDots();
-  document.getElementById('login-screen').classList.remove('oculto');
-  document.getElementById('login-error').textContent = '';
-  document.getElementById('topbar-rol-badge').textContent = '';
+  sessionStorage.removeItem('ea_ultima_vista');
+  // Se recarga la página para que no quede ninguna conexión abierta con la sesión anterior
+  auth.signOut().finally(() => location.reload());
 }
 
-// Verificar si ya hay sesión activa (recarga de página)
-(function initLogin(){
-  const rolGuardado = sessionStorage.getItem('ea_rol');
-  if(rolGuardado && sessionStorage.getItem('ea_pin_ok')) {
-    rolActual = rolGuardado;
-    const acceso = Object.values(PINS).find(p=>p.rol===rolGuardado);
-    if(acceso) { entrarAlSistema(acceso); return; }
+// Firebase avisa cuando alguien entra o sale (también al recargar la página con la sesión abierta)
+auth.onAuthStateChanged(user => {
+  if(!user){
+    sistemaEntrado = false;
+    rolActual = null;
+    document.getElementById('login-screen').classList.remove('oculto');
+    return;
   }
-  // Sin sesión — mostrar login
-  document.getElementById('login-screen').classList.remove('oculto');
-})();
+  const cuenta = CUENTAS.find(c => c.email.toLowerCase() === String(user.email || '').toLowerCase());
+  if(!cuenta){ auth.signOut(); return; }   // una cuenta que no es de este sistema no entra
+  if(sistemaEntrado) return;
+  sistemaEntrado = true;
+  rolActual = cuenta.rol;
+  entrarAlSistema({ rol: cuenta.rol, label: cuenta.label });
+});
 
-// Arranque controlado por login — ver initLogin() arriba
+// El arranque del sistema lo dispara onAuthStateChanged, arriba
 </script>
 </body>
 </html>
