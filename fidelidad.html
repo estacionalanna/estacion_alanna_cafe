@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarjeta de sellos · Estación Alanna Café</title>
+
+<!-- Firebase compat SDK (igual que tus otras páginas) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{--cafe:#3B2A1A;--miel:#EF9F27;--miel-claro:#FAC775;--miel-fondo:#FAEEDA;--crema:#FAF6ED;--borde:#E8DFC8;--texto:#2C1F0F;--texto-suave:#7A6050;--verde:#3B6D11;--rojo:#A32D2D;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Lato',sans-serif;background:#F4F0E8;color:var(--texto);min-height:100vh;}
+.wrap{max-width:440px;margin:0 auto;padding:0 16px 40px;}
+
+/* Encabezado */
+.hero{background:var(--cafe);color:var(--miel-claro);text-align:center;padding:26px 16px 30px;border-radius:0 0 28px 28px;margin:0 -16px 18px;}
+.hero img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--miel);margin-bottom:8px;background:#fff;}
+.hero h1{font-size:1.25rem;font-weight:900;letter-spacing:.5px;}
+.hero p{font-size:.85rem;color:#E8D5B0;margin-top:4px;}
+
+/* Tarjetas */
+.card{background:#fff;border:1px solid var(--borde);border-radius:16px;padding:18px 16px;margin-bottom:14px;}
+.card h2{font-size:1rem;font-weight:900;color:var(--cafe);margin-bottom:4px;}
+.sub{font-size:.8rem;color:var(--texto-suave);margin-bottom:12px;line-height:1.4;}
+label{display:block;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#BA7517;margin:10px 0 5px;}
+input[type=text],input[type=tel],input[type=date]{width:100%;padding:12px;border:1.5px solid var(--borde);border-radius:10px;font-size:1rem;font-family:'Lato',sans-serif;background:var(--crema);color:var(--texto);outline:none;}
+input:focus{border-color:var(--miel);background:#fff;}
+.tel-row{display:flex;gap:6px;}
+.tel-pref{background:var(--crema);border:1.5px solid var(--borde);border-radius:10px;padding:12px 10px;font-weight:700;color:var(--cafe);font-size:.9rem;white-space:nowrap;}
+.btn{width:100%;margin-top:14px;padding:14px;background:var(--cafe);color:var(--miel-claro);border:none;border-radius:12px;font-size:1rem;font-weight:900;font-family:'Lato',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.55;cursor:default;}
+.link{background:none;border:none;color:var(--texto-suave);font-size:.8rem;text-decoration:underline;cursor:pointer;margin-top:12px;font-family:'Lato',sans-serif;display:block;width:100%;text-align:center;}
+.msg{margin-top:12px;font-size:.88rem;line-height:1.4;padding:10px 12px;border-radius:10px;display:none;}
+.msg.ok{display:block;background:#EAF3DE;color:var(--verde);}
+.msg.err{display:block;background:#FCEBEB;color:var(--rojo);}
+.nota{font-size:.72rem;color:var(--texto-suave);margin-top:10px;line-height:1.4;}
+
+/* Tarjeta de sellos */
+.saludo{font-size:1.05rem;font-weight:900;color:var(--cafe);}
+.progreso{font-size:.85rem;color:var(--texto-suave);margin:2px 0 12px;}
+.sellos{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.sello{aspect-ratio:1;border-radius:50%;border:2px dashed #D9CBA8;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#C9B88F;background:var(--crema);}
+.sello.lleno{border:2px solid var(--miel);background:radial-gradient(circle at 35% 30%,#FFE2A8,var(--miel));color:var(--cafe);font-size:1.4rem;animation:pop .35s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+.meta{font-size:.78rem;color:var(--texto-suave);text-align:center;margin-top:12px;}
+
+/* Premios */
+.premio{background:var(--miel-fondo);border:2px dashed var(--miel);border-radius:14px;padding:14px;text-align:center;margin-bottom:10px;}
+.premio .t{font-size:.95rem;font-weight:900;color:#854F0B;}
+.premio .c{font-size:1.9rem;font-weight:900;letter-spacing:5px;color:var(--cafe);margin:6px 0 2px;}
+.premio .v{font-size:.75rem;color:#854F0B;}
+.hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hero">
+    <img src="logo.png" alt="Estación Alanna Café" onerror="this.style.display='none'">
+    <h1>Tarjeta de sellos</h1>
+    <p>Cada combo suma un sello. ¡Con 10, una consumición gratis! 🎁</p>
+  </div>
+
+  <!-- PASO 1: teléfono -->
+  <div class="card" id="paso-tel">
+    <h2>Ingresá con tu WhatsApp</h2>
+    <p class="sub">Con tu número vemos tu tarjeta, o te inscribimos si es tu primera vez.</p>
+    <label for="in-tel">Tu número</label>
+    <div class="tel-row">
+      <div class="tel-pref">🇵🇾 +595</div>
+      <input type="tel" id="in-tel" inputmode="numeric" placeholder="981 123 456" autocomplete="tel">
+    </div>
+    <button class="btn" id="btn-tel" onclick="continuarTel()">Continuar</button>
+    <div class="msg" id="msg-tel"></div>
+  </div>
+
+  <!-- PASO 2: inscripción -->
+  <div class="card hidden" id="paso-registro">
+    <h2>¡Bienvenido! Inscribite en 10 segundos</h2>
+    <p class="sub">Tu cumpleaños es para regalarte una consumición ese mes 🎂</p>
+    <label for="in-nombre">Tu nombre</label>
+    <input type="text" id="in-nombre" placeholder="Nombre y apellido" autocomplete="name">
+    <label for="in-fecha">Fecha de cumpleaños</label>
+    <input type="date" id="in-fecha">
+    <button class="btn" id="btn-registro" onclick="inscribirse()">Inscribirme</button>
+    <button class="link" onclick="cambiarNumero()">← Usar otro número</button>
+    <div class="msg" id="msg-registro"></div>
+    <p class="nota">Usamos tu número solo para avisarte de tus premios por WhatsApp. No lo compartimos con nadie.</p>
+  </div>
+
+  <!-- PASO 3: tarjeta -->
+  <div id="paso-tarjeta" class="hidden">
+
+    <div id="premios-box"></div>
+
+    <div class="card">
+      <div class="saludo" id="saludo"></div>
+      <div class="progreso" id="progreso"></div>
+      <div class="sellos" id="sellos"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+
+    <div class="card">
+      <h2>Sumá tu sello</h2>
+      <p class="sub">Al pagar un combo te damos un código (también te llega en el ticket por WhatsApp). Escribilo acá:</p>
+      <label for="in-codigo">Código</label>
+      <input type="text" id="in-codigo" placeholder="Ej: K7P4Q9" maxlength="12" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:4px;font-weight:900;text-align:center;font-size:1.3rem;">
+      <button class="btn" id="btn-codigo" onclick="sumarSello()">Sumar sello</button>
+      <div class="msg" id="msg-codigo"></div>
+      <p class="nota">Cada código vale una sola vez y vence a los 7 días.</p>
+    </div>
+
+    <button class="link" onclick="cambiarNumero()">Cambiar de número</button>
+  </div>
+
+</div>
+
+<script>
+// ── FIREBASE (misma configuración que tu sistema) ──
+firebase.initializeApp({
+  apiKey: "AIzaSyCZTl6wV52InsU-9i24BVy1Qo97_MVlnk8",
+  authDomain: "estacion-alanna.firebaseapp.com",
+  projectId: "estacion-alanna",
+  storageBucket: "estacion-alanna.firebasestorage.app",
+  messagingSenderId: "776786709550",
+  appId: "1:776786709550:web:b5b77a46abdbfb363423bf"
+});
+const db = firebase.firestore();
+
+// ── AJUSTES (se pueden cambiar acá) ──
+const SELLOS_META = 10;          // sellos para ganar el premio
+const DIAS_VENCE_PREMIO = 30;    // días que dura el premio
+
+let telActual = null;            // teléfono normalizado del socio en pantalla
+
+// ── Utilidades ──
+function $(id){ return document.getElementById(id); }
+
+// Devuelve el número en formato nacional (09XXXXXXXX) o null si no es válido
+function normalizarTel(texto){
+  let d = String(texto || '').replace(/\D/g, '');
+  if(d.startsWith('595')) d = d.slice(3);
+  if(!d.startsWith('0')) d = '0' + d;
+  return /^09\d{8}$/.test(d) ? d : null;
+}
+
+function telParaWa(tel){ return '595' + tel.slice(1); }   // 0981123456 -> 595981123456
+
+function mostrarMsg(id, tipo, texto){
+  const el = $(id);
+  el.className = 'msg ' + tipo;
+  el.textContent = texto;
+}
+function limpiarMsg(id){ const el = $(id); el.className = 'msg'; el.textContent = ''; }
+
+function mostrarPaso(paso){
+  ['paso-tel','paso-registro','paso-tarjeta'].forEach(p => $(p).classList.toggle('hidden', p !== paso));
+}
+
+function guardarTelLocal(tel){ try{ localStorage.setItem('ea_fidelidad_tel', tel); }catch(e){} }
+function leerTelLocal(){ try{ return localStorage.getItem('ea_fidelidad_tel'); }catch(e){ return null; } }
+function borrarTelLocal(){ try{ localStorage.removeItem('ea_fidelidad_tel'); }catch(e){} }
+
+// Código corto sin 0/O/1/I para que no se confundan
+function nuevoCodigo(){
+  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for(let i = 0; i < 6; i++) c += letras.charAt(Math.floor(Math.random() * letras.length));
+  return c;
+}
+
+function fechaCorta(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-PY', {day:'2-digit', month:'2-digit'});
+}
+
+// ── PASO 1: continuar con el teléfono ──
+async function continuarTel(){
+  limpiarMsg('msg-tel');
+  const tel = normalizarTel($('in-tel').value);
+  if(!tel){
+    mostrarMsg('msg-tel', 'err', 'Escribí un número de celular válido, por ejemplo 981 123 456.');
+    return;
+  }
+  $('btn-tel').disabled = true;
+  try{
+    const snap = await db.collection('socios').doc(tel).get();
+    telActual = tel;
+    if(snap.exists){
+      guardarTelLocal(tel);
+      await mostrarTarjeta(snap.data());
+    } else {
+      mostrarPaso('paso-registro');
+      $('in-nombre').focus();
+    }
+  } catch(e){
+    mostrarMsg('msg-tel', 'err', 'No pudimos conectarnos. Revisá tu internet e intentá de nuevo.');
+  }
+  $('btn-tel').disabled = false;
+}
+
+function cambiarNumero(){
+  telActual = null;
+  borrarTelLocal();
+  $('in-tel').value = '';
+  limpiarMsg('msg-tel'); limpiarMsg('msg-registro'); limpiarMsg('msg-codigo');
+  mostrarPaso('paso-tel');
+}
+
+// ── PASO 2: inscripción ──
+async function inscribirse(){
+  limpiarMsg('msg-registro');
+  const nombre = $('in-nombre').value.trim();
+  const fecha = $('in-fecha').value;
+  if(nombre.length < 2){ mostrarMsg('msg-registro', 'err', 'Escribí tu nombre.'); return; }
+  if(!fecha){ mostrarMsg('msg-registro', 'err', 'Elegí tu fecha de cumpleaños.'); return; }
+  if(!telActual){ cambiarNumero(); return; }
+
+  $('btn-registro').disabled = true;
+  const ref = db.collection('socios').doc(telActual);
+  const nuevo = {
+    nombre: nombre,
+    telefono: telActual,
+    wa: telParaWa(telActual),
+    fecha: fecha,
+    sellos: 0,
+    totalSellos: 0,
+    premiosGanados: 0,
+    creadoEn: new Date().toISOString()
+  };
+  try{
+    // Transacción: si alguien se inscribió con ese número un instante antes, no lo pisamos
+    await db.runTransaction(async tx => {
+      const s = await tx.get(ref);
+      if(s.exists) return;
+      tx.set(ref, nuevo);
+    });
+    guardarTelLocal(telActual);
+    const snap = await ref.get();
+    await mostrarTarjeta(snap.data());
+  } catch(e){
+    mostrarMsg('msg-registro', 'err', 'No pudimos inscribirte. Intentá de nuevo en un momento.');
+  }
+  $('btn-registro').disabled = false;
+}
+
+// ── PASO 3: mostrar la tarjeta ──
+async function mostrarTarjeta(socio){
+  telActual = socio.telefono || telActual;
+  $('saludo').textContent = '¡Hola, ' + (socio.nombre || '').split(' ')[0] + '! ☕';
+  pintarSellos(socio.sellos || 0);
+  $('meta').textContent = 'Premios ganados hasta hoy: ' + (socio.premiosGanados || 0);
+  mostrarPaso('paso-tarjeta');
+  await cargarPremios();
+}
+
+function pintarSellos(n){
+  $('progreso').textContent = n + ' de ' + SELLOS_META + ' sellos' +
+    (n >= SELLOS_META - 2 && n < SELLOS_META ? ' · ¡ya casi!' : '');
+  const cont = $('sellos');
+  cont.innerHTML = '';
+  for(let i = 1; i <= SELLOS_META; i++){
+    const d = document.createElement('div');
+    d.className = 'sello' + (i <= n ? ' lleno' : '');
+    d.textContent = i <= n ? '☕' : String(i);
+    cont.appendChild(d);
+  }
+}
+
+async function cargarPremios(){
+  const box = $('premios-box');
+  box.innerHTML = '';
+  try{
+    const snap = await db.collection('premios')
+      .where('tel', '==', telActual)
+      .where('estado', '==', 'pendiente').get();
+    const ahora = new Date();
+    snap.docs.forEach(doc => {
+      const p = doc.data();
+      if(new Date(p.vence) < ahora) return;      // ya venció, no lo mostramos
+      const div = document.createElement('div');
+      div.className = 'premio';
+      const t = document.createElement('div'); t.className = 't';
+      t.textContent = p.tipo === 'cumple' ? '🎂 Tu consumición de cumpleaños' : '🎁 ¡Ganaste una consumición gratis!';
+      const c = document.createElement('div'); c.className = 'c'; c.textContent = doc.id;
+      const v = document.createElement('div'); v.className = 'v';
+      v.textContent = 'Mostrale este código al cajero · vence el ' + fechaCorta(p.vence);
+      div.appendChild(t); div.appendChild(c); div.appendChild(v);
+      box.appendChild(div);
+    });
+  } catch(e){ /* si falla, la tarjeta igual se ve */ }
+}
+
+// ── Subir el código de un combo ──
+function limpiarCodigo(texto){
+  return String(texto || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+async function sumarSello(){
+  limpiarMsg('msg-codigo');
+  const codigo = limpiarCodigo($('in-codigo').value);
+  if(codigo.length !== 6){
+    mostrarMsg('msg-codigo', 'err', 'El código tiene 6 letras o números. Revisalo en tu ticket.');
+    return;
+  }
+  if(!telActual){ cambiarNumero(); return; }
+
+  $('btn-codigo').disabled = true;
+  const socioRef  = db.collection('socios').doc(telActual);
+  const codigoRef = db.collection('codigos').doc(codigo);
+  const premioCodigo = nuevoCodigo();
+  const premioRef = db.collection('premios').doc(premioCodigo);
+
+  try{
+    const res = await db.runTransaction(async tx => {
+      const socioSnap  = await tx.get(socioRef);
+      const codigoSnap = await tx.get(codigoRef);
+      if(!socioSnap.exists)  throw new Error('NO_SOCIO');
+      if(!codigoSnap.exists) throw new Error('NO_EXISTE');
+      const cod = codigoSnap.data();
+      if(cod.estado !== 'activo') throw new Error('USADO');
+      if(new Date(cod.vence) < new Date()) throw new Error('VENCIDO');
+
+      const socio = socioSnap.data();
+      const nuevosSellos = (socio.sellos || 0) + 1;
+      const gana = nuevosSellos >= SELLOS_META;
+      const ahoraISO = new Date().toISOString();
+
+      let premioSnap = null;
+      if(gana){
+        premioSnap = await tx.get(premioRef);
+        if(premioSnap.exists) throw new Error('REINTENTAR');
+      }
+
+      tx.update(codigoRef, { estado: 'usado', usadoPor: telActual, usadoEn: ahoraISO });
+
+      if(gana){
+        const vence = new Date(); vence.setDate(vence.getDate() + DIAS_VENCE_PREMIO);
+        tx.set(premioRef, {
+          tel: telActual,
+          nombre: socio.nombre || '',
+          wa: socio.wa || telParaWa(telActual),
+          tipo: 'compras',
+          estado: 'pendiente',
+          creadoEn: ahoraISO,
+          vence: vence.toISOString(),
+          avisado: false
+        });
+        tx.update(socioRef, {
+          sellos: 0,
+          totalSellos: (socio.totalSellos || 0) + 1,
+          premiosGanados: (socio.premiosGanados || 0) + 1
+        });
+      } else {
+        tx.update(socioRef, {
+          sellos: nuevosSellos,
+          totalSellos: (socio.totalSellos || 0) + 1
+        });
+      }
+      return { gana: gana, sellos: gana ? 0 : nuevosSellos };
+    });
+
+    $('in-codigo').value = '';
+    if(res.gana){
+      pintarSellos(SELLOS_META);                       // se ve la tarjeta completa un momento
+      mostrarMsg('msg-codigo', 'ok', '🎉 ¡Completaste los ' + SELLOS_META + ' sellos! Ganaste una consumición gratis. Arriba tenés tu código para mostrar en caja.');
+      setTimeout(() => pintarSellos(0), 2500);
+      const s = await socioRef.get();
+      $('meta').textContent = 'Premios ganados hasta hoy: ' + ((s.data() || {}).premiosGanados || 0);
+      await cargarPremios();
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    } else {
+      pintarSellos(res.sellos);
+      const faltan = SELLOS_META - res.sellos;
+      mostrarMsg('msg-codigo', 'ok', '✅ ¡Sello sumado! Te ' + (faltan === 1 ? 'falta 1 sello' : 'faltan ' + faltan + ' sellos') + ' para tu premio.');
+    }
+  } catch(e){
+    const m = {
+      NO_SOCIO:  'No encontramos tu inscripción. Tocá "Cambiar de número" y volvé a ingresar.',
+      NO_EXISTE: 'Ese código no existe. Revisá que esté bien escrito.',
+      USADO:     'Ese código ya fue usado.',
+      VENCIDO:   'Ese código venció (duran 7 días). Pedí uno nuevo en tu próxima visita.',
+      REINTENTAR:'Probá de nuevo en un momento.'
+    }[e && e.message];
+    mostrarMsg('msg-codigo', 'err', m || 'No pudimos sumar el sello. Revisá tu internet e intentá de nuevo.');
+  }
+  $('btn-codigo').disabled = false;
+}
+
+// Enter para enviar
+$('in-tel').addEventListener('keydown', e => { if(e.key === 'Enter') continuarTel(); });
+$('in-codigo').addEventListener('keydown', e => { if(e.key === 'Enter') sumarSello(); });
+
+// Si ya entró antes desde este celular, lo recibimos directo
+(async function(){
+  const guardado = leerTelLocal();
+  if(!guardado) return;
+  try{
+    const snap = await db.collection('socios').doc(guardado).get();
+    if(snap.exists){ telActual = guardado; await mostrarTarjeta(snap.data()); }
+    else borrarTelLocal();
+  } catch(e){ /* sin conexión: queda la pantalla de teléfono */ }
+})();
+</script>
+</body>
+</html>
