@@ -1534,12 +1534,27 @@ function showTorneoTab(tab){
   if(tab==='ganador') renderGanador();
 }
 
+// Contadores de numeración (contadores/comandas y contadores/torneo).
+// Las páginas públicas suman 1 sin leer los datos de otros; acá se crean
+// la primera vez, partiendo del número más alto que ya exista.
+const contadoresSembrados = {};
+function sembrarContador(nombre, maximo){
+  if(contadoresSembrados[nombre]) return;
+  contadoresSembrados[nombre] = true;
+  const ref = db.collection('contadores').doc(nombre);
+  db.runTransaction(async tx=>{
+    const c = await tx.get(ref);
+    if(!c.exists) tx.set(ref, {n: maximo});
+  }).catch(()=>{ contadoresSembrados[nombre] = false; });
+}
+
 function escucharTorneo(){
   // 1) Escucha jugadores de la colección pública (link de inscripción)
   if(!torneoEscuchando){
     torneoEscuchando = true;
     db.collection('torneo_jugadores').orderBy('numero').onSnapshot(snap=>{
       torneoJugadores = snap.docs.map(d=>({id:d.id,...d.data()}));
+      sembrarContador('torneo', Math.max(0, ...torneoJugadores.map(j=>j.numero||0)));
       actualizarBannerOnline();
       renderJugadores();
       setSyncOk();
@@ -1588,15 +1603,20 @@ function inscribirJugador(){
   if(torneoJugadores.find(j=>j.nombre.toLowerCase()===nombre.toLowerCase())){
     alert('Ese jugador ya está inscripto.');return;
   }
-  const numero = torneoJugadores.length + 1;
-  db.collection('torneo_jugadores').add({
+  const contRef = db.collection('contadores').doc('torneo');
+  db.runTransaction(async tx=>{
+    const c = await tx.get(contRef);
+    const n = (c.exists ? (c.data().n||0) : torneoJugadores.length) + 1;
+    tx.set(contRef, {n});
+    return n;
+  }).then(numero=>db.collection('torneo_jugadores').add({
     nombre, telefono: tel ? '+595'+tel.replace(/\D/g,'') : '',
     equipo, edad: edad ? parseInt(edad) : null,
     numero, estado:'inscripto',
     grupo:null, goles_favor:0, goles_contra:0, puntos:0,
     fechaInscripcion: firebase.firestore.FieldValue.serverTimestamp(),
     origen:'presencial'
-  }).then(()=>{
+  })).then(()=>{
     document.getElementById('tor-nombre').value='';
     document.getElementById('tor-tel').value='';
     document.getElementById('tor-equipo').value='';
@@ -1817,6 +1837,7 @@ function resetTorneo(){
   db.collection('torneo_jugadores').get().then(snap=>{
     const batch=db.batch();
     snap.docs.forEach(d=>batch.delete(d.ref));
+    batch.set(db.collection('contadores').doc('torneo'), {n:0});
     return batch.commit();
   }).then(()=>{
     torneoData={grupos:[],llaves:[],ganador:null,estado:'inscripcion'};
@@ -1926,8 +1947,36 @@ function escucharReservas(){
     });
     actualizarMetricas();
     filtrarReservas();
+    sincronizarOcupacion();
     setSyncOk();
   }, ()=>setSyncErr());
+}
+
+// "ocupacion" = copia pública (sin datos personales) de las reservas activas,
+// que usa reservas.html para avisar de choques de horario.
+let ocupacionSincronizada = false;
+function sincronizarOcupacion(){
+  if(ocupacionSincronizada) return;
+  ocupacionSincronizada = true;
+  const hoy = new Date().toISOString().split('T')[0];
+  db.collection('ocupacion').get().then(snap=>{
+    const existentes = new Set(snap.docs.map(d=>d.id));
+    const batch = db.batch();
+    let n = 0;
+    todasReservas.forEach(r=>{
+      const fecha = normalizarFecha(r.fecha);
+      const activa = r.estado==='pendiente' || r.estado==='confirmada';
+      if(activa && fecha>=hoy && !existentes.has(r.id) && r.hora && r.lugar){
+        batch.set(db.collection('ocupacion').doc(r.id), {fecha, lugar:r.lugar, hora:r.hora, activa:true});
+        n++;
+      }
+    });
+    if(n>0) return batch.commit();
+  }).catch(()=>{ ocupacionSincronizada = false; });
+}
+
+function marcarOcupacion(id, activa){
+  db.collection('ocupacion').doc(id).set({activa}, {merge:true}).catch(()=>{});
 }
 
 function actualizarMetricas(){
@@ -1991,13 +2040,15 @@ function renderReservas(lista){
 function cambiarEstadoRes(id, estado){
   const accion = estado==='confirmada'?'confirmar':'cancelar';
   if(!confirm('¿'+accion.charAt(0).toUpperCase()+accion.slice(1)+' esta reserva?'))return;
-  db.collection('reservas').doc(id).update({estado}).catch(()=>setSyncErr());
+  db.collection('reservas').doc(id).update({estado}).then(()=>{
+    marcarOcupacion(id, estado==='confirmada');
+  }).catch(()=>setSyncErr());
 }
 
 function liberarReserva(id, lugar){
   if(!confirm('¿Marcar como completada y liberar '+lugar+'?'))return;
   db.collection('reservas').doc(id).update({estado:'completada', horaLiberacion: new Date().toLocaleTimeString('es-PY',{hour:'2-digit',minute:'2-digit'})})
-    .then(()=>setSyncOk()).catch(()=>setSyncErr());
+    .then(()=>{ marcarOcupacion(id, false); setSyncOk(); }).catch(()=>setSyncErr());
 }
 
 // ══════════════════════════════════════════════
@@ -2782,6 +2833,7 @@ function escucharComandas(){
   if(comandasEscuchando) return;
   comandasEscuchando = true;
   db.collection('comandas').orderBy('creadoEn','desc').onSnapshot(snap=>{
+    sembrarContador('comandas', Math.max(0, ...snap.docs.map(d=>d.data().numero||0)));
     // Detectar nuevos pedidos para notificar
     if(!primeraCargaComandas){
       const nuevos = snap.docChanges().filter(c=>c.type==='added');

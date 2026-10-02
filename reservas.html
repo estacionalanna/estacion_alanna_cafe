@@ -329,10 +329,11 @@ function enviarReserva(){
   btn.disabled = true;
 
   // Buscar reservas que choquen — misma fecha, lugar y dentro de 60 minutos
-  db.collection('reservas')
+  // Lee "ocupacion" (solo fecha/lugar/hora, sin datos personales)
+  db.collection('ocupacion')
     .where('fecha','==',fecha)
     .where('lugar','==',lugar)
-    .where('estado','in',['pendiente','confirmada'])
+    .where('activa','==',true)
     .get()
     .then(snap=>{
       const conflictos = snap.docs.map(d=>d.data()).filter(r=>{
@@ -359,7 +360,12 @@ function enviarReserva(){
         timestamp: new Date().toISOString()
       };
 
-      db.collection('reservas').add(reserva).then(()=>{
+      // Se guardan juntas: la reserva (privada) y su ocupación (pública, sin datos personales)
+      const resRef = db.collection('reservas').doc();
+      const batch = db.batch();
+      batch.set(resRef, reserva);
+      batch.set(db.collection('ocupacion').doc(resRef.id), { fecha, lugar, hora, activa: true });
+      batch.commit().then(()=>{
         btn.textContent = '✓ Confirmar reserva';
         btn.disabled = false;
         const fechaFormateada = new Date(fecha+'T12:00:00').toLocaleDateString('es-PY',{weekday:'long',day:'numeric',month:'long'});

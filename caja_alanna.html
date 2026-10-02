@@ -358,6 +358,15 @@
 </style>
 </head>
 <body>
+<div id="caja-login" style="position:fixed;inset:0;z-index:9999;background:#3B2A1A;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+  <div style="font-size:40px;">☕</div>
+  <div style="color:#FAC775;font-weight:800;font-size:20px;margin:8px 0 4px;">Estación Alanna Café</div>
+  <div style="color:#EAD9C4;font-size:13px;margin-bottom:18px;">Caja — ingresá tu PIN</div>
+  <input id="caja-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••"
+    style="width:200px;padding:14px;font-size:24px;text-align:center;letter-spacing:8px;border-radius:12px;border:none;">
+  <button id="caja-pin-btn" style="margin-top:14px;padding:12px 28px;border:none;border-radius:10px;background:#FAC775;color:#3B2A1A;font-weight:800;font-size:15px;cursor:pointer;">Entrar</button>
+  <div id="caja-pin-msg" style="color:#FFB4B4;font-size:13px;margin-top:12px;min-height:18px;"></div>
+</div>
 <div class="app">
   <header>
     <div class="title">☕ Estación Alanna Café</div>
@@ -425,6 +434,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script>
   let items = [];
 
@@ -534,6 +544,49 @@
       db = firebase.firestore();
     }
   } catch (e) { console.error('Firebase no disponible:', e); }
+
+  // ── ACCESO CON PIN (Firebase Authentication, mismas cuentas que el sistema de gestión) ──
+  const CUENTAS_CAJA = ['alannasoft.py+admin@gmail.com', 'alannasoft.py+socio@gmail.com'];
+  const cajaLogin = document.getElementById('caja-login');
+  const cajaPin = document.getElementById('caja-pin');
+  const cajaMsg = document.getElementById('caja-pin-msg');
+  const cajaBtn = document.getElementById('caja-pin-btn');
+  let auth = null;
+  if (db) {
+    auth = firebase.auth();
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(()=>{});
+    auth.onAuthStateChanged(user => {
+      if (user && CUENTAS_CAJA.includes(user.email)) {
+        cajaLogin.style.display = 'none';
+      } else {
+        if (user) auth.signOut();
+        cajaLogin.style.display = 'flex';
+      }
+    });
+  } else {
+    cajaMsg.textContent = '📶 Sin conexión. Se necesita internet para entrar.';
+  }
+
+  async function cajaEntrar(){
+    const pin = cajaPin.value.trim();
+    if (!/^\d{6}$/.test(pin)) { cajaMsg.textContent = 'El PIN tiene 6 números.'; return; }
+    if (!auth) return;
+    cajaBtn.disabled = true;
+    cajaMsg.textContent = '';
+    let ultimoError = null;
+    for (const email of CUENTAS_CAJA) {
+      try { await auth.signInWithEmailAndPassword(email, pin); cajaPin.value = ''; cajaBtn.disabled = false; return; }
+      catch (e) { ultimoError = e; if (e.code === 'auth/too-many-requests' || e.code === 'auth/network-request-failed') break; }
+    }
+    cajaBtn.disabled = false;
+    cajaPin.value = '';
+    const code = ultimoError && ultimoError.code;
+    cajaMsg.textContent = code === 'auth/too-many-requests' ? '⏳ Demasiados intentos. Esperá unos minutos.'
+      : code === 'auth/network-request-failed' ? '📶 Sin conexión. Revisá tu internet.'
+      : '❌ PIN incorrecto';
+  }
+  cajaBtn.addEventListener('click', cajaEntrar);
+  cajaPin.addEventListener('keydown', e => { if (e.key === 'Enter') cajaEntrar(); });
 
   function showToast(msg, isError){
     toastEl.textContent = msg;

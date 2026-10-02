@@ -473,8 +473,14 @@
 
     try {
       // Contar inscriptos actuales para asignar número
-      const snap = await db.collection('torneo_jugadores').get();
-      const numero = snap.size + 1;
+      // (usa un contador: ya no se lee la lista de otros inscriptos)
+      const contRef = db.collection('contadores').doc('torneo');
+      const numero = await db.runTransaction(async tx => {
+        const c = await tx.get(contRef);
+        const n = (c.exists ? (c.data().n || 0) : 0) + 1;
+        tx.set(contRef, { n });
+        return n;
+      });
 
       const jugador = {
         nombre:    nombre,

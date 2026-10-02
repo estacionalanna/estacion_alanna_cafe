@@ -542,8 +542,14 @@ async function enviarPedido(){
 
   try {
     // Número de pedido
-    const snap  = await db.collection('comandas').get();
-    const numero = snap.size + 1;
+    // (usa un contador: ya no se leen los pedidos de otros clientes)
+    const contRef = db.collection('contadores').doc('comandas');
+    const numero = await db.runTransaction(async tx => {
+      const c = await tx.get(contRef);
+      const n = (c.exists ? (c.data().n || 0) : 0) + 1;
+      tx.set(contRef, { n });
+      return n;
+    });
 
     const productos = Object.entries(carrito).map(([n,v])=>({
       nombre:n, precio:v.precio, qty:v.qty, subtotal:v.precio*v.qty
