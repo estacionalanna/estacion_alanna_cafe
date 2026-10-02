@@ -3161,9 +3161,12 @@ function entrarAlSistema(acceso) {
   // Arrancar el sistema
   escucharMesas();
   escucharGastos();
-  escucharClientes();
-  escucharPremios();
-  escucharSocios();
+  // Clientes, socios y premios: solo el administrador (las reglas de Firebase no dejan leerlos al socio)
+  if(acceso.rol==='admin'){
+    escucharClientes();
+    escucharPremios();
+    escucharSocios();
+  }
   escucharReservas();
   escucharEventos();
   escucharComandas();

@@ -398,7 +398,7 @@ async function mostrarTarjeta(socio){
   $('meta').textContent = 'Premios ganados hasta hoy: ' + (socio.premiosGanados || 0);
   mostrarPaso('paso-tarjeta');
   cargarMuro();
-  await cargarPremios();
+  await cargarPremios(socio);
 }
 
 function pintarSellos(n){
@@ -414,16 +414,17 @@ function pintarSellos(n){
   }
 }
 
-async function cargarPremios(){
+async function cargarPremios(socio){
   const box = $('premios-box');
   box.innerHTML = '';
   try{
-    const snap = await db.collection('premios')
-      .where('tel', '==', telActual)
-      .where('estado', '==', 'pendiente').get();
+    // Se leen uno por uno los premios que figuran en la tarjeta del socio (no se puede listar la colección entera)
+    const codigos = (socio && socio.premiosCodigos) || [];
+    const docs = (await Promise.all(codigos.map(c => db.collection('premios').doc(c).get()))).filter(d => d.exists);
     const ahora = new Date();
-    snap.docs.forEach(doc => {
+    docs.forEach(doc => {
       const p = doc.data();
+      if(p.estado !== 'pendiente') return;
       if(new Date(p.vence) < ahora) return;      // ya venció, no lo mostramos
       const div = document.createElement('div');
       div.className = 'premio';
@@ -502,15 +503,19 @@ async function sumarSello(){
           vence: vence.toISOString(),
           avisado: false
         });
+        // ultimoCodigo / premiosCodigos: las reglas de seguridad los usan para comprobar que el sello viene de un código real
         tx.update(socioRef, {
           sellos: 0,
           totalSellos: (socio.totalSellos || 0) + 1,
-          premiosGanados: (socio.premiosGanados || 0) + 1
+          premiosGanados: (socio.premiosGanados || 0) + 1,
+          ultimoCodigo: codigo,
+          premiosCodigos: (socio.premiosCodigos || []).concat([premioCodigo])
         });
       } else {
         tx.update(socioRef, {
           sellos: nuevosSellos,
-          totalSellos: (socio.totalSellos || 0) + 1
+          totalSellos: (socio.totalSellos || 0) + 1,
+          ultimoCodigo: codigo
         });
       }
       return { gana: gana, sellos: gana ? 0 : nuevosSellos };
@@ -524,7 +529,7 @@ async function sumarSello(){
       setTimeout(() => pintarSellos(0), 2500);
       const s = await socioRef.get();
       $('meta').textContent = 'Premios ganados hasta hoy: ' + ((s.data() || {}).premiosGanados || 0);
-      await cargarPremios();
+      await cargarPremios(s.data() || {});
       window.scrollTo({top: 0, behavior: 'smooth'});
     } else {
       pintarSellos(res.sellos);

@@ -1,0 +1,237 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════
+//  Estación Alanna Café — Reglas de seguridad de Firestore
+//  Se pegan en: Firebase Console → Firestore Database → Reglas
+//
+//  Quién es quién:
+//   · Personal: las dos cuentas de Firebase Authentication del sistema
+//     (administrador y socio). Nadie más puede crear cuentas.
+//   · Público: cualquier persona con el link (clientes sin sesión).
+//
+//  Si cambiás SELLOS_META en fidelidad.html, cambiá también el 9 (META - 1)
+//  en la regla de "socios" y en la de "premios".
+// ═══════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Funciones auxiliares ──
+    function esAdmin() {
+      return request.auth != null
+          && request.auth.token.email == 'alannasoft.py+admin@gmail.com';
+    }
+    function esSocio() {
+      return request.auth != null
+          && request.auth.token.email == 'alannasoft.py+socio@gmail.com';
+    }
+    function esPersonal() { return esAdmin() || esSocio(); }
+
+    function textoCorto(v, max) { return v is string && v.size() <= max; }
+    function esTel(v) { return v is string && v.matches('^09[0-9]{8}$'); }
+
+    // Cambios sobre el documento existente: solo estos campos pueden cambiar
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    // ═════════ PERSONAL (administrador y socio) ═════════
+    match /ventas/{id}         { allow read, write: if esPersonal(); }
+    match /mesas/{id}          { allow read, write: if esPersonal(); }
+    match /playstation/{id}    { allow read, write: if esPersonal(); }
+    match /empleados/{id}      { allow read, write: if esPersonal(); }
+    match /turnos/{id}         { allow read, write: if esPersonal(); }
+    match /gastos/{id}         { allow read, write: if esPersonal(); }
+    match /historial_caja/{id} { allow read, write: if esPersonal(); }
+    match /torneo/{id}         { allow read, write: if esPersonal(); }
+
+    // ═════════ SOLO ADMINISTRADOR ═════════
+    match /clientes/{id}       { allow read, write: if esAdmin(); }
+
+    // ═════════ COMANDAS (pedidos del salón) ═════════
+    match /comandas/{id} {
+      allow read, update, delete: if esPersonal();
+      allow create: if esPersonal()
+        || (request.resource.data.estado == 'pendiente'
+            && request.resource.data.keys().size() <= 14
+            && textoCorto(request.resource.data.cliente, 120)
+            && request.resource.data.productos is list
+            && request.resource.data.productos.size() <= 60
+            && request.resource.data.total is number);
+    }
+
+    // ═════════ CONTADORES (numeración de pedidos / torneo) ═════════
+    // El público solo puede sumar de a 1; el personal puede ajustarlos.
+    match /contadores/{id} {
+      allow read, write: if esPersonal();
+      allow get: if id == 'comandas' || id == 'torneo';
+      allow create: if (id == 'comandas' || id == 'torneo')
+                    && request.resource.data.keys().hasOnly(['n'])
+                    && request.resource.data.n == 1;
+      allow update: if (id == 'comandas' || id == 'torneo')
+                    && request.resource.data.keys().hasOnly(['n'])
+                    && request.resource.data.n == resource.data.n + 1;
+    }
+
+    // ═════════ TORNEO: inscripciones públicas ═════════
+    match /torneo_jugadores/{id} {
+      allow read, update, delete: if esPersonal();
+      allow create: if esPersonal()
+        || (request.resource.data.estado == 'inscripto'
+            && request.resource.data.keys().size() <= 14
+            && textoCorto(request.resource.data.nombre, 80)
+            && request.resource.data.puntos == 0);
+    }
+
+    // ═════════ RESERVAS Y EVENTOS: solicitudes públicas ═════════
+    match /reservas/{id} {
+      allow read, update, delete: if esPersonal();
+      allow create: if esPersonal()
+        || (request.resource.data.estado == 'pendiente'
+            && request.resource.data.keys().size() <= 16
+            && textoCorto(request.resource.data.nombre, 100)
+            && textoCorto(request.resource.data.tel, 40));
+    }
+    match /eventos/{id} {
+      allow read, update, delete: if esPersonal();
+      allow create: if esPersonal()
+        || (request.resource.data.estado == 'pendiente'
+            && request.resource.data.keys().size() <= 18
+            && textoCorto(request.resource.data.nombre, 100)
+            && textoCorto(request.resource.data.tel, 40));
+    }
+
+    // Disponibilidad pública (sin datos personales): solo fecha, lugar y hora.
+    match /ocupacion/{id} {
+      allow read: if true;
+      allow write: if esPersonal();
+      allow create: if request.resource.data.keys().hasOnly(['fecha', 'lugar', 'hora', 'activa'])
+                    && request.resource.data.activa == true
+                    && textoCorto(request.resource.data.fecha, 10)
+                    && textoCorto(request.resource.data.lugar, 30)
+                    && textoCorto(request.resource.data.hora, 5)
+                    && existsAfter(/databases/$(database)/documents/reservas/$(id));
+    }
+
+    // ═════════ FIDELIDAD ═════════
+
+    // Códigos de combo: el público puede leer uno si conoce el código (no listar)
+    // y marcarlo como usado una sola vez.
+    match /codigos/{codigo} {
+      allow read, write: if esPersonal();
+      allow get: if true;
+      allow update: if resource.data.estado == 'activo'
+                    && request.resource.data.estado == 'usado'
+                    && esTel(request.resource.data.usadoPor)
+                    && soloCambia(['estado', 'usadoPor', 'usadoEn']);
+    }
+
+    // Socios: solo el administrador los lista. El público puede abrir su propia
+    // ficha si conoce su número (no se pueden listar ni leer en masa).
+    match /socios/{tel} {
+      allow read, write: if esAdmin();
+      allow get: if true;
+
+      // Inscripción nueva
+      allow create: if esTel(tel)
+        && request.resource.data.keys().hasOnly(
+             ['nombre', 'telefono', 'wa', 'fecha', 'sellos', 'totalSellos',
+              'premiosGanados', 'muro', 'muroId', 'creadoEn'])
+        && request.resource.data.telefono == tel
+        && textoCorto(request.resource.data.nombre, 60) && request.resource.data.nombre.size() >= 2
+        && textoCorto(request.resource.data.fecha, 10)
+        && textoCorto(request.resource.data.wa, 15)
+        && request.resource.data.sellos == 0
+        && request.resource.data.totalSellos == 0
+        && request.resource.data.premiosGanados == 0
+        && request.resource.data.muro is bool
+        && textoCorto(request.resource.data.muroId, 20);
+
+      allow update:
+        // (a) activar o desactivar la aparición en el muro
+        if (soloCambia(['muro', 'muroId'])
+            && request.resource.data.muro is bool
+            && textoCorto(request.resource.data.muroId, 20)
+            && (!('muroId' in resource.data) || request.resource.data.muroId == resource.data.muroId))
+        // (b) sumar un sello: solo con un código real que se marca como usado en el mismo paso
+        || (soloCambia(['sellos', 'totalSellos', 'ultimoCodigo'])
+            && request.resource.data.ultimoCodigo is string
+            && request.resource.data.ultimoCodigo.size() == 6
+            && request.resource.data.sellos == resource.data.sellos + 1
+            && resource.data.sellos < 9
+            && request.resource.data.totalSellos == resource.data.get('totalSellos', 0) + 1
+            && codigoCanjeadoPor(request.resource.data.ultimoCodigo, tel))
+        // (c) completar los 10 sellos: vuelve a 0 y se crea el premio en el mismo paso
+        || (soloCambia(['sellos', 'totalSellos', 'premiosGanados', 'ultimoCodigo', 'premiosCodigos'])
+            && request.resource.data.ultimoCodigo is string
+            && request.resource.data.ultimoCodigo.size() == 6
+            && resource.data.sellos == 9
+            && request.resource.data.sellos == 0
+            && request.resource.data.totalSellos == resource.data.get('totalSellos', 0) + 1
+            && request.resource.data.premiosGanados == resource.data.get('premiosGanados', 0) + 1
+            && request.resource.data.premiosCodigos is list
+            && request.resource.data.premiosCodigos.size() == resource.data.get('premiosCodigos', []).size() + 1
+            && codigoCanjeadoPor(request.resource.data.ultimoCodigo, tel)
+            && premioNuevoDe(request.resource.data.premiosCodigos[request.resource.data.premiosCodigos.size() - 1], tel));
+    }
+
+    // El código estaba activo y, tras la operación, quedó usado por este socio
+    function codigoCanjeadoPor(codigo, tel) {
+      return get(/databases/$(database)/documents/codigos/$(codigo)).data.estado == 'activo'
+          && getAfter(/databases/$(database)/documents/codigos/$(codigo)).data.estado == 'usado'
+          && getAfter(/databases/$(database)/documents/codigos/$(codigo)).data.usadoPor == tel;
+    }
+    // El premio se creó en esta operación y es de este socio
+    function premioNuevoDe(codigoPremio, tel) {
+      return !exists(/databases/$(database)/documents/premios/$(codigoPremio))
+          && getAfter(/databases/$(database)/documents/premios/$(codigoPremio)).data.tel == tel;
+    }
+
+    // Premios: el público solo puede abrir uno si conoce el código, y solo se crean
+    // cuando el socio completa los 10 sellos. Canjear/descartar es del administrador.
+    match /premios/{codigo} {
+      allow read, write: if esAdmin();
+      allow get: if true;
+      allow create: if codigo.size() == 6
+        && request.resource.data.keys().hasOnly(
+             ['tel', 'nombre', 'wa', 'tipo', 'estado', 'creadoEn', 'vence', 'avisado'])
+        && esTel(request.resource.data.tel)
+        && request.resource.data.tipo == 'compras'
+        && request.resource.data.estado == 'pendiente'
+        && request.resource.data.avisado == false
+        && get(/databases/$(database)/documents/socios/$(request.resource.data.tel)).data.sellos == 9
+        && getAfter(/databases/$(database)/documents/socios/$(request.resource.data.tel)).data.sellos == 0
+        && getAfter(/databases/$(database)/documents/socios/$(request.resource.data.tel)).data.premiosCodigos[
+             getAfter(/databases/$(database)/documents/socios/$(request.resource.data.tel)).data.premiosCodigos.size() - 1] == codigo;
+    }
+
+    // Muro público: lectura libre (solo nombre abreviado y sellos). Cualquiera puede
+    // crear su fila, pero luego solo puede avanzar (+1 sello o reinicio con premio);
+    // no se puede cambiar el nombre ni poner sellos de más.
+    match /muro/{id} {
+      allow read: if true;
+      allow write: if esAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['nombre', 'sellos', 'premiosGanados'])
+                    && textoCorto(request.resource.data.nombre, 20)
+                    && request.resource.data.sellos is int
+                    && request.resource.data.sellos >= 0 && request.resource.data.sellos <= 9
+                    && request.resource.data.premiosGanados is int
+                    && request.resource.data.premiosGanados >= 0;
+      allow update: if request.resource.data.keys().hasOnly(['nombre', 'sellos', 'premiosGanados'])
+                    && request.resource.data.nombre == resource.data.nombre
+                    && ((request.resource.data.sellos == resource.data.sellos
+                         && request.resource.data.premiosGanados == resource.data.premiosGanados)
+                     || (request.resource.data.sellos == resource.data.sellos + 1
+                         && request.resource.data.sellos <= 9
+                         && request.resource.data.premiosGanados == resource.data.premiosGanados)
+                     || (resource.data.sellos == 9
+                         && request.resource.data.sellos == 0
+                         && request.resource.data.premiosGanados == resource.data.premiosGanados + 1));
+      allow delete: if true;
+    }
+
+    // Todo lo demás: cerrado
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
